@@ -42,7 +42,6 @@ The following features will be completed by the Beta version:
  - **Dice roller**: this includes the DM interface to prompt a dice roll, the PC interface to roll the die, the calculation and displaying the result on a backlog.
     - The calculation includes Combat dice rolls and Result of decided action dice rolls.
     - Players can also manually enter a value if they prefer to use in-real-life dice but also want to add the result to the backlog.
- - **Level up**: once the exp reaches a threshold according to the rules, the character sheet gets updated accordingly.
 
 # Additional features that will be complete by the Final version
 The following features will be completed by the Final version:
@@ -53,7 +52,8 @@ The following features will be completed by the Final version:
     - Locations names, along with their background information for cities, landmarks, countries etc
     - Personal quest notes for both the DM and player to input lore/quest details they find interesting or deem important
     - Organization tracker to describe outline the names and backgrounds of different groups, like religions, guilds, and mercenary groups
-- **Exporting character**: this includes exporting the character to a different campaign (or giving the selection to PC to reuse a character) and exporting the character using the [dnd character sheet library](https://www.npmjs.com/package/dnd-character-sheets)
+- **Exporting character**: if time permits, we will include this feature. This includes exporting the character to a different campaign (or giving the selection to PC to reuse a character) and exporting the character using the [dnd character sheet library](https://www.npmjs.com/package/dnd-character-sheets)
+- **Level up**: if time permits, we will include this feature. Once the exp reaches a threshold according to the rules and the DM, the character sheet gets updated accordingly. (The leveling up mechanic can be done manually by the DM without this feature) 
 # Technology stack that we will use to build and deploy it
 For the frontend, we will be using **React**, **Tailwind CSS** and **TypeScript**. 
 
