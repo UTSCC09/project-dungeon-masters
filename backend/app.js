@@ -3,7 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const expressGraphQL = require("express-graphql").graphqlHTTP;
-const { GraphQLSchema, GraphQLObjectType, GraphQLString } = require("graphql");
+const {
+    GraphQLSchema,
+    GraphQLObjectType,
+    GraphQLString,
+    GraphQLList,
+} = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
 const app = express();
@@ -38,18 +43,32 @@ const db = mongoose.connection;
 db.on("error", (err) => console.error(err));
 db.once("open", () => console.log("Connected to Database"));
 
+const Sample = require("./models/sampleModle");
+
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
     description: "Root query",
     fields: () => ({
-        message: {
-            type: GraphQLString,
-            args: {
-                name: {
-                    type: GraphQLString,
-                },
+        sample: {
+            type: new GraphQLList(SampleType),
+            resolve: async () => {
+                const docs = await Sample.find();
+                console.log(docs);
+                return docs;
             },
-            resolve: (parent, args) => `Hello World, ${args.name}!`,
+        },
+    }),
+});
+
+const SampleType = new GraphQLObjectType({
+    name: "Sample",
+    description: "This is a sample object",
+    fields: () => ({
+        name: {
+            type: GraphQLString,
+        },
+        info: {
+            type: GraphQLString,
         },
     }),
 });
