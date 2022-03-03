@@ -2,6 +2,8 @@ const bcrypt = require("bcrypt");
 const fs = require("fs");
 const path = require("path");
 const express = require("express");
+const expressGraphQL = require("express-graphql").graphqlHTTP;
+const { GraphQLSchema, GraphQLObjectType, GraphQLString } = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
 const app = express();
@@ -29,8 +31,37 @@ app.use(
     })
 );
 
+const RootQueryType = new GraphQLObjectType({
+    name: "Query",
+    description: "Root query",
+    fields: () => ({
+        message: {
+            type: GraphQLString,
+            args: {
+                name: {
+                    type: GraphQLString,
+                },
+            },
+            resolve: (parent, args) => `Hello World, ${args.name}!`,
+        },
+    }),
+});
+
+const schema = new GraphQLSchema({
+    query: RootQueryType,
+});
+
+app.use(
+    "/graphql",
+    expressGraphQL({
+        schema: schema,
+        graphiql: true,
+    })
+);
+
 const http = require("http");
-const PORT = 3000;
+const { resolve } = require("path");
+const PORT = 5000;
 
 http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
