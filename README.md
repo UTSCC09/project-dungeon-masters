@@ -1,71 +1,38 @@
-# Genesis - TRPG Session Hosting Application
+# Camp Fire
 # Team Members
 | Name        | Student Number | UTORID   |
 |-------------|----------------|----------|
 | Artina Sin  | 1004909904     | siniat   |
 | Wilson Mak  | 1004869403     | makwils2 |
 | Yiyang Zhou | 1005719386     | zhouyiy8 |
-
 # A Description of the Web Application
-## Overview of the TRPG
-Dungeons & Dragons (DnD) is a type of tabletop role-playing game where a player acts as a host (Dungeon Master, or DM) and other players create their own characters (Player Characters, or PC) to go on an adventure in a fantasy world. The game is usually very long and will take several meetings to complete (one full game is usually called a campaign), and the majority of the game play follows the pattern of:
+The purpose of this web app is to create an immersive storytelling experience by generating a realistic VR scenario with autoplayed soundtracks. A user can create a lobby as a narrator and invite other users as audiences.
 
- 1. DM describes the situation
- 2. PC describes what their character will do
- 3. DM decides based on the decided action, the threshold of success (what is the minimum rolled number for the action to be success)
- 4. PC rolls the dice
- 5. The result of the dice is modified by the character’s skills, ability modifiers, etc. Then the final result is used to decide the outcome of the action
- 6. DM describes what happens next and repeats this process
- 
-## What the Web Application will Consists of
-The goal of the web application is to make managing these sessions easier, whether they are in person or online. A logged-in user would be able to create a room as a DM and invite other players to join as PC. The players are expected to be able to communicate with each other outside the site while playing (either in person or through a voice call).
-
-PC would create their character by filling out a **character creation form** and have the character information stored in the database. The DM then introduce the PCs to the game setting, and would be able to **record the location and event** so that players can keep track of the things that are happening while in the game and when they resume the next session.
-
-When performing a **dice roll**, the DM will select the PC performing the action, specify the dice roll type and success condition, and make a prompt to the PC. On the PC’s side, they will be able to click a “Roll” button or roll a real die to determine whether their action is successful or not. The action and result will be saved in the **history backlog** for players to refer to and the DM will make changes to game status accordingly.
-
-Other game mechanics such as combat, spell cast and leveling up will be done in a similar manner where the application would perform the calculation and DM has the permissions to **update different tokens** based on the outcome.
-
-The DM can pause their room and mark it as complete. All players would be able to **view the backlog** anytime they wish. Once the campaign is complete, the PC can **export their character** to a different campaign.
-
+In a lobby, the narrator would upload a series of background images to set up the scenes. The narrator would tell the story on a voice chat, while soundtracks/sound effects will be auto played based on the live speech. Specifically, the application would utilize natural language processing to determine entities (i.e rain, thunder, swords) in the narrator's speech to trigger associated sound effects. This process would occur live, with the sound effects being triggered almost instantaneously to ensure an enveloping listening experience. While listening to the narrator and hearing the sound effects, the user would view a track of 360 scenes to engage the user's visual senses. 
 # Key features that will be completed by the Beta version
-The following features will be completed by the Beta version:
- - **Room / lobby creation and gallery**: this includes creating a lobby, searching a lobby, entering a lobby through a passcode, and saving a lobby to your account
- - **Character sheet creation**: this includes creating a form for PC to create a new character during a session and viewing the character during the session (editable, see Token tracking) and outside of the session (read only)
- - **Token tracking**: during the session, DM or PC can edit various fields on their character sheets or spell sheet. 
-    - Basic stats of the PC, such as strength and wisdom. 
-    - Hit points (max, current, and temporary). 
-    - Character level and current exp point. Proficiency choices.
-    - Number of hit dice, or spell slot spent, and successes and failures of death saves.
-    - Info about equipment obtained or spells learned / that are ready.
-    - Other fields that are dependent on one or more of the above fields will be automatically computed and filled in.
- - **Dice roller**: this includes the DM interface to prompt a dice roll, the PC interface to roll the die, the calculation and displaying the result on a backlog.
-    - The calculation includes Combat dice rolls and Result of decided action dice rolls.
-    - Players can also manually enter a value if they prefer to use in-real-life dice but also want to add the result to the backlog.
-
+Create screenplay script by lining up multiple images.
+Turn images into 360 VR scenes.
+Live voice chat. 
+Live speech to text.
+Basic account and lobby management functionality.
 # Additional features that will be complete by the Final version
-The following features will be completed by the Final version:
- - **Documentation, help feature**: by using the [dnd5eapi](https://www.dnd5eapi.co/), we will create a search feature for data regarding character creation and rules.
- - **History backlog**: aside from displaying results of past dice rolls, allow DM to delete a dice roll that is made by mistake. The history backlog will also include the story telling of the DM (the DM can note down important information to all players or just themselves) and the edit history of the character tokens by the DM, and the DM can revert the changes if need be.
-- **World building helper**: if time permits, we will create an interface where DMs can make notes and prepare the sessions.
-    - NPC background information, and their stats
-    - Locations names, along with their background information for cities, landmarks, countries etc
-    - Personal quest notes for both the DM and player to input lore/quest details they find interesting or deem important
-    - Organization tracker to describe outline the names and backgrounds of different groups, like religions, guilds, and mercenary groups
-- **Exporting character**: if time permits, we will include this feature. This includes exporting the character to a different campaign (or giving the selection to PC to reuse a character) and exporting the character using the [dnd character sheet library](https://www.npmjs.com/package/dnd-character-sheets)
-- **Level up**: if time permits, we will include this feature. Once the exp reaches a threshold according to the rules and the DM, the character sheet gets updated accordingly. (The leveling up mechanic can be done manually by the DM without this feature) 
+Overlay of a transcription of the story on top of the VR environment.
+Using natural language processing to play sound effects.
+Upload or browse background music to compliment the screenplay script.
 # Technology stack that we will use to build and deploy it
-For the frontend, we will be using **React**, **Tailwind CSS** and **TypeScript**. 
-
-For the backend we will be using **Express.js**, **MongoDB** and **GraphQL** for data exchange. We will be using the [dnd5eapi](https://www.dnd5eapi.co/) and [dnd character sheet library](https://www.npmjs.com/package/dnd-character-sheets) as mentioned above. 
-
-We will deploy and host out application with **AWS**. 
-
-To keep track of the features that we need to implement, we will be using **Jira**.
+For the frontend, we will be using React, Tailwind CSS and TypeScript.
+For the backend we will be using Express.js, MongoDB and GraphQL for data exchange. 
+We will deploy and host our application with AWS.
+To keep track of the features that we need to implement, we will be using Jira.
+We will also utilize the following libraries/APIs:
+- [Google speech to text](https://cloud.google.com/speech-to-text?utm_source=google&utm_medium=cpc&utm_campaign=na-CA-all-en-dr-bkws-all-all-trial-p-dr-1011347&utm_content=text-ad-none-any-DEV_c-CRE_553163282119-ADGP_Desk%20%7C%20BKWS%20-%20PHR%20%7C%20Txt%20~%20AI%20%26%20ML%20~%20Speech-to-Text_Speech%20to%20Text_General-KWID_43700066945310816-kwd-307155559603&utm_term=KW_google%20speech-ST_google%20speech&gclid=CjwKCAiAsYyRBhACEiwAkJFKos802bLXiU0rf-73UiKOpsAcb-rbhud2Fb4k_VUcMUs1w8YeZyHIIRoCX8EQAvD_BwE&gclsrc=aw.ds)
+- [Google cloud natural language](https://cloud.google.com/natural-language?utm_source=google&utm_medium=cpc&utm_campaign=na-CA-all-en-dr-skws-all-all-trial-p-dr-1011347&utm_content=text-ad-none-any-DEV_c-CRE_532162994877-ADGP_Desk%20%7C%20SKWS%20-%20PHR%20%7C%20Txt%20~%20Cloud%20Natural%20Language-KWID_43700064911459760-kwd-912789485721&utm_term=KW_natural%20language-ST_Natural%20language&gclid=CjwKCAiAsYyRBhACEiwAkJFKojTT0tTGSQP7FXm55CvI3Pb85DtZDs8THteQrT56SGH1eSFLNLT0DhoCC_QQAvD_BwE&gclsrc=aw.ds)
+- [React 360](https://www.npmjs.com/package/react-360)
+- [freesound API](https://freesound.org/docs/api/)
+ 
 # Top 5 technical challenges
-Based on our understanding of the scope and difficulty of the features, these are what we think would be our top 5 technical challenges:
-1. **Real-time information exchange.** The main feature is to allow the DM to prompt a dice roll and update any character status in real-time. Although we learnt this in class by making a get request at regular time-intervals, this also means a lot of information has to be passed around. We have to either find other ways to do this or make suitable sacrifices on the performance.
-2. **Designing the UI in general.** DnD itself has a lot of rules and information related to the game play. It will be a challenge to design a clean, consistent layout that does not overload users with information.
-3. **Learning the dnd5eapi and using it for the search feature.** Creating a search feature that searches keywords from our database will be challenging. We suspect creating a search feature that requires us making good use of this wonderful api would be even more difficult. 
-4. **Storing and showing the history backlog.** Since the history backlog would store and display dice roll results, story settings, character sheet edit history, etc. that are of different types of information, we will have to think about what is the best way to store and display them in an appropriate order.
-5. **Automation.** To improve on the user experience, there will be values that are automatically filled in, such as ability modifiers in a dice roll, so that the user do not need to pull up their character sheet every time to enter the correct value manually. This means there will be an increase in the complexity on the number of scenarios to consider. For example, if the character is dual-wielded, we must account for both main hand and off hand weapon damage. The code can become messy as we build on conditions to account for different cases, therefore finding a design pattern that will keep this logic organized will be rather challenging.
+1. We need to find a way to utilize the result returned by the natural language processor to play the suitable soundtrack.
+2. How to naturally blend soundtracks with each other when switching without sounding interrupted.
+3. We need to figure out how to limit the sound effect to only be triggered by the narrator, and ensure the sound effect is played on every user’s side.
+4. How to generate a VR scene using normal 2D images.
+5. How to optimize the responsiveness of the whole process of speech to text, natural language process and playing soundtrack to provide an enjoyable user experience.
