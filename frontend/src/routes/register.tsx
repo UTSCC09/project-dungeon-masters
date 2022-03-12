@@ -1,19 +1,24 @@
 import React from "react";
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
 import StyledLink from "../components/StyledLink";
 
-const Login = function () {
-    const loginQuery = `
+export default function Register() {
+    const pwdConfirmRef = useRef<HTMLInputElement>(null);
+    const registerQuery = `
         query {
             // TODO: Write the graphql query
         }`;
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState<string>("");
 
-    const signinHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+    const registerHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+            setErrorMessage("Passwords does not match!");
+            return;
+        }
         try {
             let result: any;
             result = await fetch("http://localhost:5000/graphql/", {
@@ -22,7 +27,7 @@ const Login = function () {
                     "content-type": "application/json; charset=UTF-8",
                 },
                 body: JSON.stringify({
-                    query: loginQuery,
+                    query: registerQuery,
                     variables: {
                         username,
                         password,
@@ -42,7 +47,7 @@ const Login = function () {
     };
 
     return (
-        <div className="fixed w-full h-full pt-12 bg-background">
+        <main className="fixed w-full h-full bg-background pt-12">
             <img
                 className="w-24 h-24 mx-auto rounded-full mb-8"
                 src={require("../assets/images/tree_480.webp")}
@@ -52,42 +57,47 @@ const Login = function () {
                     className="text-bright text-center font-bold mb-1"
                     style={{ fontSize: 32 }}
                 >
-                    Login
+                    Register
                 </header>
                 <div id="error" className="text-bright text-center">
                     {errorMessage}
                 </div>
                 <form
                     className="flex flex-col justify-center mt-5"
-                    onSubmit={signinHandler}
+                    onSubmit={registerHandler}
                 >
                     <input
-                        className="rounded h-6 w-52 px-2 mb-6"
+                        className="rounded h-6 w-52 px-2 mb-6 bg-light-grey"
                         type="text"
                         placeholder="Username"
                         onChange={(e) => setUsername(e.target.value)}
                     ></input>
                     <input
-                        className="rounded h-6 w-52 px-2 mb-6"
+                        className="rounded h-6 w-52 px-2 mb-6 bg-light-grey"
                         type="password"
                         placeholder="Password"
+                        onChange={(e) => setPassword(e.target.value)}
+                    ></input>
+                    <input
+                        ref={pwdConfirmRef}
+                        className="rounded h-6 w-52 px-2 mb-6 bg-light-grey"
+                        type="password"
+                        placeholder="Confirm password"
                         onChange={(e) => setPassword(e.target.value)}
                     ></input>
                     <button
                         className="bg-warm text-white py-3 rounded-lg mb-4"
                         type="submit"
                     >
-                        Sign in
+                        Register
                     </button>
                     <div className="mx-auto">
-                        <StyledLink to="/register">
-                            Don't have an account yet?
+                        <StyledLink to="/login">
+                            Already have an account?
                         </StyledLink>
                     </div>
                 </form>
             </div>
-        </div>
+        </main>
     );
-};
-
-export default Login;
+}

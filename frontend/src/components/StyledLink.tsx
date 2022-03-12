@@ -8,7 +8,7 @@ interface PropsType {
 
 export default function StyledLink(props: PropsType) {
     return (
-        <div className="underline text-base text-blue-800 text-opacity-75">
+        <div className="underline text-base text-bright text-opacity-75">
             <Link to={props.to}>{props.children}</Link>
         </div>
     );

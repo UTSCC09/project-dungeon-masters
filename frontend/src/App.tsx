@@ -3,6 +3,7 @@ import { Link, Outlet } from "react-router-dom";
 import logo from "./logo.svg";
 import "./App.css";
 import Test from "./Test";
+import StyledLink from "./components/StyledLink";
 
 function App() {
     return (
@@ -14,7 +15,8 @@ function App() {
                     paddingBottom: "1rem",
                 }}
             >
-                <Link to="/login">Login</Link>
+                <StyledLink to="/login">Login</StyledLink>
+                <StyledLink to="/register">Register</StyledLink>
             </nav>
             <Outlet />
         </div>
