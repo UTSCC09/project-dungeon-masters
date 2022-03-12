@@ -1,34 +1,14 @@
 import React from "react";
 import { useState, useRef } from "react";
-import { Canvas } from "react-three-fiber";
-import CameraControls from "../components/3d/CameraControls";
-import Skybox from "../components/3d/Skybox";
-import StyledLink from "../components/StyledLink";
+import StyledLink from "./StyledLink";
 
-const Login = function () {
-    return (
-        <div className="fixed m-0 p-0 w-full h-full">
-            <Canvas>
-                <CameraControls />
-                <Skybox
-                    path={[
-                        "/assets/right.png",
-                        "/assets/left.png",
-                        "/assets/top.png",
-                        "/assets/bottom.png",
-                        "/assets/front.png",
-                        "/assets/back.png",
-                    ]}
-                />
-            </Canvas>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <LoginUI />
-            </div>
-        </div>
-    );
-};
+interface PropsType {
+    setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-const LoginUI = function () {
+const Login = function (props: PropsType) {
+    const { setShowLogin } = props;
+
     const loginQuery = `
         query {
             // TODO: Write the graphql query
@@ -105,9 +85,16 @@ const LoginUI = function () {
                         Sign in
                     </button>
                     <div className="mx-auto">
-                        <StyledLink to="/register">
-                            Don't have an account yet?
-                        </StyledLink>
+                        <a
+                            className="underline text-base text-bright text-opacity-75"
+                            href=""
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowLogin(false);
+                            }}
+                        >
+                            Do not have an account?
+                        </a>
                     </div>
                 </form>
             </div>

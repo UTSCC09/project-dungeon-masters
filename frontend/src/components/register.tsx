@@ -1,34 +1,17 @@
 import React from "react";
 import { useState, useRef } from "react";
 import { Canvas } from "react-three-fiber";
-import CameraControls from "../components/3d/CameraControls";
-import Skybox from "../components/3d/Skybox";
-import StyledLink from "../components/StyledLink";
+import CameraControls from "./3d/CameraControls";
+import Skybox from "./3d/Skybox";
+import StyledLink from "./StyledLink";
 
-const Register = function () {
-    return (
-        <div className="fixed m-0 p-0 w-full h-full">
-            <Canvas>
-                <CameraControls />
-                <Skybox
-                    path={[
-                        "/assets/right.png",
-                        "/assets/left.png",
-                        "/assets/top.png",
-                        "/assets/bottom.png",
-                        "/assets/front.png",
-                        "/assets/back.png",
-                    ]}
-                />
-            </Canvas>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <RegisterUI />
-            </div>
-        </div>
-    );
-};
+interface PropsType {
+    setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-function RegisterUI() {
+const Register = function (props: PropsType) {
+    const { setShowLogin } = props;
+
     const pwdConfirmRef = useRef(null);
     const registerQuery = `
         query {
@@ -118,14 +101,21 @@ function RegisterUI() {
                         Register
                     </button>
                     <div className="mx-auto">
-                        <StyledLink to="/login">
+                        <a
+                            className="underline text-base text-bright text-opacity-75"
+                            href=""
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowLogin(true);
+                            }}
+                        >
                             Already have an account?
-                        </StyledLink>
+                        </a>
                     </div>
                 </form>
             </div>
         </>
     );
-}
+};
 
 export default Register;

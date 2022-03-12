@@ -4,16 +4,14 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import Login from "./routes/login";
-import Register from "./routes/register";
+import LRFormWrapper from "./routes/LRFromWrapper";
 
 ReactDOM.render(
     <React.StrictMode>
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<App />}></Route>
-                <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register />} />
+                <Route path="login" element={<LRFormWrapper />} />
                 <Route
                     path="*"
                     element={
