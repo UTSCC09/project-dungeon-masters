@@ -1,9 +1,35 @@
 import React from "react";
 import { useState, useRef } from "react";
+import { Canvas } from "react-three-fiber";
+import CameraControls from "../components/3d/CameraControls";
+import Skybox from "../components/3d/Skybox";
 import StyledLink from "../components/StyledLink";
 
-export default function Register() {
-    const pwdConfirmRef = useRef<HTMLInputElement>(null);
+const Register = function () {
+    return (
+        <div className="fixed m-0 p-0 w-full h-full">
+            <Canvas>
+                <CameraControls />
+                <Skybox
+                    path={[
+                        "/assets/right.png",
+                        "/assets/left.png",
+                        "/assets/top.png",
+                        "/assets/bottom.png",
+                        "/assets/front.png",
+                        "/assets/back.png",
+                    ]}
+                />
+            </Canvas>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <RegisterUI />
+            </div>
+        </div>
+    );
+};
+
+function RegisterUI() {
+    const pwdConfirmRef = useRef(null);
     const registerQuery = `
         query {
             // TODO: Write the graphql query
@@ -11,7 +37,7 @@ export default function Register() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const registerHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -47,7 +73,7 @@ export default function Register() {
     };
 
     return (
-        <main className="fixed w-full h-full bg-background pt-12">
+        <>
             <img
                 className="w-24 h-24 mx-auto rounded-full mb-8"
                 src={require("../assets/images/tree_480.webp")}
@@ -98,6 +124,8 @@ export default function Register() {
                     </div>
                 </form>
             </div>
-        </main>
+        </>
     );
 }
+
+export default Register;

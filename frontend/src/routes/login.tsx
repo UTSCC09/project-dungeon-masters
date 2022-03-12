@@ -1,9 +1,34 @@
 import React from "react";
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Canvas } from "react-three-fiber";
+import CameraControls from "../components/3d/CameraControls";
+import Skybox from "../components/3d/Skybox";
 import StyledLink from "../components/StyledLink";
 
 const Login = function () {
+    return (
+        <div className="fixed m-0 p-0 w-full h-full">
+            <Canvas>
+                <CameraControls />
+                <Skybox
+                    path={[
+                        "/assets/right.png",
+                        "/assets/left.png",
+                        "/assets/top.png",
+                        "/assets/bottom.png",
+                        "/assets/front.png",
+                        "/assets/back.png",
+                    ]}
+                />
+            </Canvas>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <LoginUI />
+            </div>
+        </div>
+    );
+};
+
+const LoginUI = function () {
     const loginQuery = `
         query {
             // TODO: Write the graphql query
@@ -42,7 +67,7 @@ const Login = function () {
     };
 
     return (
-        <div className="fixed w-full h-full pt-12 bg-background">
+        <>
             <img
                 className="w-24 h-24 mx-auto rounded-full mb-8"
                 src={require("../assets/images/tree_480.webp")}
@@ -86,7 +111,7 @@ const Login = function () {
                     </div>
                 </form>
             </div>
-        </div>
+        </>
     );
 };
 
