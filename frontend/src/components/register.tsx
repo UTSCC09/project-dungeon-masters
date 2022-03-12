@@ -92,7 +92,7 @@ const Register = function (props: PropsType) {
                         className="rounded h-6 w-52 px-2 mb-6 bg-light-grey"
                         type="password"
                         placeholder="Confirm password"
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                     ></input>
                     <button
                         className="bg-warm text-white py-3 rounded-lg mb-4"
