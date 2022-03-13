@@ -14,3 +14,19 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
 }
+
+.btn:hover {
+    cursor: pointer;
+}
+
+.btn_next {
+    background-image: url("../public/media/next.png");
+    background-size:contain;
+    background-repeat: no-repeat;
+}
+
+.btn_previous {
+    background-image: url("../public/media/previous.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
