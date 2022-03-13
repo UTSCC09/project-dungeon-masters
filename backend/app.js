@@ -44,6 +44,7 @@ db.on("error", (err) => console.error(err));
 db.once("open", () => console.log("Connected to Database"));
 
 const User = require("./models/userModel");
+const {UserType, UserInputType} = require("./GraphqlTypes/UserType")
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -67,71 +68,41 @@ const RootMutationType = new GraphQLObjectType({
         addUser: {
             type: UserType,
             args: {
-                input: { type: new GraphQLInputObjectType({
-                        name: "UserInputObject",
-                        fields: () => ({
-                            username: {
-                                type: GraphQLString,
-                            },
-                            email: {
-                                type: GraphQLString
-                            },
-                            password: {
-                                type: GraphQLString
-                            },
-                            profilePicture: {
-                                type: GraphQLString
-                            },
-                            socialMedia: {
-                                type: new GraphQLInputObjectType({
-                                    name: "socialMediaInput",
-                                    fields: () => ({
-                                        twitter: {type: GraphQLString},
-                                        instagram: {type: GraphQLString}
-                                    })
-                                })
-                            }
-                        }),
-                    })},
+                userData: { type: UserInputType },
             },
-            resolve: async (source, userData) => {
-                const user = await User.create({
-                    username: userData.input.username,
-                    email: userData.input.email,
-                    password: userData.input.password,
-                    profilePicture: userData.input.profilePicture,
-                    socialMedia: userData.input.socialMedia
-                })
-                return user;
+            resolve: async (source, args) => {
+                return await User.create({
+                    username: args.userData.username,
+                    email: args.userData.email,
+                    password: args.userData.password,
+                    profilePicture: args.userData.profilePicture,
+                    socialMedia: args.userData.socialMedia
+                });
             }
-        }
-    }),
-});
-
-const UserType = new GraphQLObjectType({
-    name: "User",
-    description: "This is a user object",
-    fields: () => ({
-        username: {
-            type: GraphQLString,
         },
-        email: {
-            type: GraphQLString
+        modifyUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+                userData: { type: UserInputType },
+            },
+            resolve: async(source, args) => {
+                return User.findOneAndUpdate({username: args.username}, {
+                    email: args.userData.email,
+                    password: args.userData.password,
+                    profilePicture: args.userData.profilePicture,
+                    socialMedia: args.userData.socialMedia
+                }, {new: true});
+            }
         },
-        password: {
-            type: GraphQLString
-        },
-        profilePicture: {
-            type: GraphQLString
-        },
-        socialMedia: {
-            type: new GraphQLObjectType({
-                name: "socialMedia",
-                fields: () => ({
-                    twitter: {type: GraphQLString},
-                    instagram: {type: GraphQLString}
-                })
-            })
+        deleteUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+            },
+            resolve: async(source, args) => {
+                return User.findOneAndDelete({username: args.username});
+            }
         }
     }),
 });
