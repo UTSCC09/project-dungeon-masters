@@ -17,9 +17,13 @@ const userSchema = new mongoose.Schema({
     },
     profilePicture: String,
     socialMedia: {
-        type: Map,
-        of: String
+        twitter: {
+            type: String
+        },
+        instagram: {
+            type: String
+        }
     }
 });
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("user", userSchema);

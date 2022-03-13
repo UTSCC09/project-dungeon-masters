@@ -7,7 +7,7 @@ const {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLList,
+    GraphQLList, GraphQLInputObjectType,
 } = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -43,16 +43,16 @@ const db = mongoose.connection;
 db.on("error", (err) => console.error(err));
 db.once("open", () => console.log("Connected to Database"));
 
-const Sample = require("./models/sampleModle");
+const User = require("./models/userModel");
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
     description: "Root query",
     fields: () => ({
-        sample: {
-            type: new GraphQLList(SampleType),
+        user: {
+            type: new GraphQLList(UserType),
             resolve: async () => {
-                const docs = await Sample.find();
+                const docs = await User.find();
                 console.log(docs);
                 return docs;
             },
@@ -60,21 +60,85 @@ const RootQueryType = new GraphQLObjectType({
     }),
 });
 
-const SampleType = new GraphQLObjectType({
-    name: "Sample",
-    description: "This is a sample object",
+const RootMutationType = new GraphQLObjectType({
+    name: "Mutation",
+    description: "Root Mutation",
     fields: () => ({
-        name: {
+        addUser: {
+            type: UserType,
+            args: {
+                input: { type: new GraphQLInputObjectType({
+                        name: "UserInputObject",
+                        fields: () => ({
+                            username: {
+                                type: GraphQLString,
+                            },
+                            email: {
+                                type: GraphQLString
+                            },
+                            password: {
+                                type: GraphQLString
+                            },
+                            profilePicture: {
+                                type: GraphQLString
+                            },
+                            socialMedia: {
+                                type: new GraphQLInputObjectType({
+                                    name: "socialMediaInput",
+                                    fields: () => ({
+                                        twitter: {type: GraphQLString},
+                                        instagram: {type: GraphQLString}
+                                    })
+                                })
+                            }
+                        }),
+                    })},
+            },
+            resolve: async (source, userData) => {
+                const user = await User.create({
+                    username: userData.input.username,
+                    email: userData.input.email,
+                    password: userData.input.password,
+                    profilePicture: userData.input.profilePicture,
+                    socialMedia: userData.input.socialMedia
+                })
+                return user;
+            }
+        }
+    }),
+});
+
+const UserType = new GraphQLObjectType({
+    name: "User",
+    description: "This is a user object",
+    fields: () => ({
+        username: {
             type: GraphQLString,
         },
-        info: {
-            type: GraphQLString,
+        email: {
+            type: GraphQLString
         },
+        password: {
+            type: GraphQLString
+        },
+        profilePicture: {
+            type: GraphQLString
+        },
+        socialMedia: {
+            type: new GraphQLObjectType({
+                name: "socialMedia",
+                fields: () => ({
+                    twitter: {type: GraphQLString},
+                    instagram: {type: GraphQLString}
+                })
+            })
+        }
     }),
 });
 
 const schema = new GraphQLSchema({
     query: RootQueryType,
+    mutation: RootMutationType,
 });
 
 app.use(
@@ -87,7 +151,7 @@ app.use(
 
 const http = require("http");
 const { resolve } = require("path");
-const PORT = 5000;
+const PORT = 3000;
 
 http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
