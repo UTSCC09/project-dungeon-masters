@@ -1,29 +1,20 @@
 import React from "react";
-import logo from "./logo.svg";
+import { Link, Outlet } from "react-router-dom";
 import "./App.css";
-import Test from "./Test";
 
 function App() {
     return (
         <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
-                <h1 className="text-3xl font-bold underline">
-                    Hello Tailwind CSS!
-                </h1>
-            </header>
-            <Test />
+            <h1>Bookkeeper</h1>
+            <nav
+                style={{
+                    borderBottom: "solid 1px",
+                    paddingBottom: "1rem",
+                }}
+            >
+                <Link to="/login">Login</Link>
+            </nav>
+            <Outlet />
         </div>
     );
 }
