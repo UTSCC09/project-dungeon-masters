@@ -22,6 +22,7 @@ export default function CameraControls() {
             ref={controls}
             args={[camera, domElement]}
             autoRotate
+            autoRotateSpeed={0.5}
             enableZoom={false}
         />
     );
