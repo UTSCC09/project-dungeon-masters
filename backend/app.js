@@ -7,7 +7,7 @@ const {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLList,
+    GraphQLList, GraphQLInputObjectType,
 } = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -43,16 +43,17 @@ const db = mongoose.connection;
 db.on("error", (err) => console.error(err));
 db.once("open", () => console.log("Connected to Database"));
 
-const Sample = require("./models/sampleModle");
+const User = require("./models/userModel");
+const {UserType, UserInputType} = require("./GraphqlTypes/UserType")
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
     description: "Root query",
     fields: () => ({
-        sample: {
-            type: new GraphQLList(SampleType),
+        user: {
+            type: new GraphQLList(UserType),
             resolve: async () => {
-                const docs = await Sample.find();
+                const docs = await User.find();
                 console.log(docs);
                 return docs;
             },
@@ -60,21 +61,55 @@ const RootQueryType = new GraphQLObjectType({
     }),
 });
 
-const SampleType = new GraphQLObjectType({
-    name: "Sample",
-    description: "This is a sample object",
+const RootMutationType = new GraphQLObjectType({
+    name: "Mutation",
+    description: "Root Mutation",
     fields: () => ({
-        name: {
-            type: GraphQLString,
+        addUser: {
+            type: UserType,
+            args: {
+                userData: { type: UserInputType },
+            },
+            resolve: async (source, args) => {
+                return await User.create({
+                    username: args.userData.username,
+                    email: args.userData.email,
+                    password: args.userData.password,
+                    profilePicture: args.userData.profilePicture,
+                    socialMedia: args.userData.socialMedia
+                });
+            }
         },
-        info: {
-            type: GraphQLString,
+        modifyUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+                userData: { type: UserInputType },
+            },
+            resolve: async(source, args) => {
+                return User.findOneAndUpdate({username: args.username}, {
+                    email: args.userData.email,
+                    password: args.userData.password,
+                    profilePicture: args.userData.profilePicture,
+                    socialMedia: args.userData.socialMedia
+                }, {new: true});
+            }
         },
+        deleteUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+            },
+            resolve: async(source, args) => {
+                return User.findOneAndDelete({username: args.username});
+            }
+        }
     }),
 });
 
 const schema = new GraphQLSchema({
     query: RootQueryType,
+    mutation: RootMutationType,
 });
 
 app.use(
@@ -87,7 +122,7 @@ app.use(
 
 const http = require("http");
 const { resolve } = require("path");
-const PORT = 5000;
+const PORT = 3000;
 
 http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
