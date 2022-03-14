@@ -1,58 +1,89 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, Fragment, MouseEventHandler } from 'react';
 import { InfoProp, CampFire } from './AddCampFireForm';
 
 export function AddCampFireInfoForm(props: InfoProp) {
-    let { setInfo, campfire } = props;
-
-    const campNameRef = useRef<HTMLInputElement | null>(null);
-    const campDescriptionRef = useRef<HTMLTextAreaElement | null>(null);
-    const campInvitation = useRef<HTMLInputElement | null>(null);
-    const campPasswordRef = useRef<HTMLInputElement | null>(null);
-    const campThumbNailRef = useRef<HTMLInputElement | null>(null);
-
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-
-    //     // const name = mesNameRef.current.value;
-    //     // const content = mesContentRef.current.value;
-    //     // createMessage(name, content);
-
-    //     e.target.reset();
-    // }
+    let { setCampfire, campfire} = props;
 
 
-    useEffect(() => {
-        return () => {
-            if(campNameRef.current != null && campDescriptionRef.current != null && campInvitation.current != null && campPasswordRef.current != null && campThumbNailRef.current != null && campThumbNailRef.current.files){
-                // if(campfire.thumbnail){
-                //     campThumbNailRef.current.files[0] = campfire.thumbnail;
-                // }
-                setInfo(campNameRef.current.value, campDescriptionRef.current.value, campInvitation.current.checked, campPasswordRef.current.value, campThumbNailRef.current.files[0]);
-            }
+    // const campNameRef = useRef<HTMLInputElement | null>(null);
+    // const campDescriptionRef = useRef<HTMLTextAreaElement | null>(null);
+    // const campInvitation = useRef<HTMLInputElement | null>(null);
+    // const campPasswordRef = useRef<HTMLInputElement | null>(null);
+    // const campThumbNailRef = useRef<HTMLInputElement | null>(null);
+
+    const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
+        setCampfire({...campfire, [e.currentTarget.name]: e.currentTarget.value});
+        
+    };
+
+    const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setCampfire({...campfire, [e.currentTarget.name]: e.currentTarget.value}); 
+    };
+
+    const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if( e.currentTarget.files !== null){
+            setCampfire({...campfire, [e.currentTarget.name]: e.currentTarget.files[0]}); 
         }
-    },[]);
+    };
+
+    const handleRemoveThumbnail = () => {
+        setCampfire({...campfire, thumbnail: undefined});
+    };
 
     return(
-        <form className="m-6 p-6 max-w-lg bg-white dark:bg-slate-700 rounded-xl shadow-lg mx-auto grid justify-center">
-        <label className='p-4 text-black dark:text-white shrink-0'>
+        <div className="m-6 p-4 w-1/2 bg-white dark:bg-gray-700 rounded-xl shadow-lg mx-auto flex-col justify-center">
+        <label className='p-4 w-full text-black dark:text-white shrink-0'>
             Name
-            <input type="text" className='m-4 text-black bg-slate-200 rounded-md dark:text-white dark:bg-slate-600 p-1 focus-visible:outline-none focus-visible:border-3 focus-visible:border-amber-500 focus-visible:border-l-amber-500 transition duration-300 ease-in-out' placeholder="Name your camp fire" required defaultValue={campfire.name} ref={campNameRef}/>
+            <input type="text" className='m-4 text-black bg-gray-200 w-5/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none' 
+                placeholder="Name your camp fire" 
+                name='name' 
+                value={campfire.name} 
+                onChange={handleChange} required/>
         </label>
-        <label className='p-4 text-black dark:text-white shrink-0'>
+        <label className='p-4 w-full text-black dark:text-white shrink-0'>
             Description
-            <textarea className="mt-4 text-black bg-slate-200 rounded-md dark:text-white dark:bg-slate-600 p-1 focus-visible:outline-none focus-visible:border-3 focus-visible:border-amber-500 focus-visible:border-l-amber-500 transition duration-300 ease-in-out w-full h-36" placeholder="Describe your camp fire" required defaultValue={campfire.description} ref={campDescriptionRef}></textarea>
+            <textarea className="m-4 text-black bg-gray-200 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none w-5/6 h-36" 
+                placeholder="Describe your camp fire" 
+                name='description' 
+                value={campfire.description} 
+                onChange={handleTextAreaChange} required></textarea>
         </label>
-        <label className='p-4 text-black dark:text-white shrink-0'>
+        <label className='p-4 w-full text-black dark:text-white shrink-0 '>
             Invitation Only
-            <input type="checkbox" className="m-4 text-black bg-slate-200 rounded-md dark:text-white dark:bg-slate-600 p-1 focus-visible:outline-none focus-visible:border-3 focus-visible:border-amber-500 focus-visible:border-l-amber-500 transition duration-300 ease-in-out" defaultChecked={campfire.invitation} ref={campInvitation} />
+            <input type="checkbox" className="m-4 text-black bg-gray-200 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
+                name='invitation'
+                checked={campfire.invitation}
+                onChange={handleChange}/>
         </label>
-        <label className='p-4 text-black dark:text-white shrink-0'>
+        <label className='p-4 w-full text-black dark:text-white shrink-0'>
             Passcode
-            <input type="text" className="m-4 text-black bg-slate-200 rounded-md dark:text-white dark:bg-slate-600 p-1 focus-visible:outline-none focus-visible:border-3 focus-visible:border-amber-500 focus-visible:border-l-amber-500 transition duration-300 ease-in-out" placeholder="Enter a passcode" defaultValue={campfire.password} ref={campPasswordRef}/>
+            <input type="text" className="m-4 text-black bg-gray-200 w-5/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
+                name='password'
+                value={campfire.password}
+                placeholder="Enter a passcode"
+                onChange={handleChange}/>
         </label>
-        <label className='p-4 text-black dark:text-white shrink-0'>
-            Thumbnail
-            <input type="file"className="m-4 text-black bg-slate-200 rounded-md dark:text-white dark:bg-slate-600 p-1 focus-visible:outline-none focus-visible:border-3 focus-visible:border-amber-500 focus-visible:border-l-amber-500 transition duration-300 ease-in-out" accept='.jpg,.png,.jpeg' ref={campThumbNailRef}/>
-        </label>
-        </form>);
+        { !campfire.thumbnail ?
+                <label className='p-4 w-full text-black dark:text-white shrink-0'>
+                Thumbnail
+                <div>
+                <input type="file"className="m-4 text-black bg-gray-200 w-5/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
+                name='thumbnail'
+                accept='image/*'
+                onChange={handleThumbnailChange}/>
+                </div>
+            </label>
+            :
+            <div className='p-4 w-full text-black dark:text-white shrink-0'>
+                Thumbnail
+                <div className='grid grid-cols-5'>
+                    <div className=" m-4 text-black bg-gray-200 col-span-4 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none">
+                    {campfire.thumbnail.name}
+                    </div>
+                    <div className='m-4 btn btn_remove w-4/5 col-span-1 justify-self-end' onClick={handleRemoveThumbnail}/>
+                </div>
+            </div>
+        }
+        </div>
+);
 }
