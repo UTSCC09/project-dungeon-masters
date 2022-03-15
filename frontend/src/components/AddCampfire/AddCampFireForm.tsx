@@ -1,7 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AddCampFireInfoForm } from "./AddCampFireInfoForm";
 import { AddCampFireSceneForm } from "./AddCampFireSceneForm";
-// import { AddCampFireNav } from './AddCampFireNav';
+import sPhotos from './AddScene/photos.json'; // static photos, change later
+
 
 export interface CampFire{
     name: string;
@@ -30,6 +31,7 @@ export function AddCampFireForm() {
         password: "",
         thumbnail: undefined
     });
+    const [photos, setPhotos] = useState(sPhotos);
 
     const[page, setPage] = useState<number>(0);
     const[title, setTitle] = useState<string>("");
@@ -52,19 +54,6 @@ export function AddCampFireForm() {
         // }
     },[page]);
 
-    function setInfo(name: string , description: string, invitation: boolean, password: string, thumbnail:File | undefined) {
-        setCampfire(campfire => { 
-            const newCamp: CampFire = {
-                name,
-                description,
-                invitation,
-                password,
-                thumbnail  
-            }
-            return newCamp;
-        });
-    }
-
     const nextPage = () => {
         setPage(page + 1);
     }
@@ -82,18 +71,26 @@ export function AddCampFireForm() {
     // }
 
     return(
-        <div className='dark pb-5 min-h-screen bg-gradient-to-t to-white dark:to-zinc-900 via-stone-600 from-yellow-200'>
-            <div className="top-0 w-full h-20 bg-rose-800 grid grid-cols-3 place-content-center">
-                <div className="h-18 w-14 m-1 ml-5 btn btn_previous justify-self-start" onClick={prevPage}/>
+        <div className='dark pb-5 min-h-screen bg-gradient-to-t to-white dark:to-zinc-900 via-stone-600 from-amber-200 grid'>
+            <div className="top-0 w-full h-20 bg-amber-700 grid grid-cols-3 place-content-center">
+                { page === 0 ?
+                    <div className="h-18 m-1 ml-5 btn rounded-md bg-amber-200 text-red-800 p-2 justify-self-start">Cancel</div>
+                :
+                    <div className="h-18 w-14 m-1 ml-5 btn btn_previous justify-self-start" onClick={prevPage}/>
+                }
                 <div className="text-5xl text-amber-200 place-self-center">{title}</div>
-                <div className="h-18 w-14 m-1 mr-5 btn btn_next justify-self-end" onClick={nextPage}/>
+                { page === 2 ?
+                    <div className="h-18 m-1 mr-5 btn rounded-md bg-amber-200 text-red-800 p-2 justify-self-end">Confirm</div>
+                :
+                    <div className="h-18 w-14 m-1 mr-5 btn btn_next justify-self-end" onClick={nextPage}/>
+                }
             </div>
-            <form>
+            <form className='place-self-center w-full'>
                 { page === 0 &&
                      <AddCampFireInfoForm setCampfire={setCampfire} campfire={campfire}/>
                 }{
                     page === 1 &&
-                    <AddCampFireSceneForm />
+                    <AddCampFireSceneForm setPhotos={setPhotos} photos={photos}/>
                 }
             </form>
         </div>

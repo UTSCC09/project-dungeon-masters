@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import { AddCampFireForm } from "./components/AddCampFireForm";
+import { AddCampFireForm } from "./components/AddCampfire/AddCampFireForm";
 
 function App() {    
     return (

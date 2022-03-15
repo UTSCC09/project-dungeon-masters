@@ -18,6 +18,7 @@ code {
     background-size:contain;
     background-repeat: no-repeat;
 }
+
 .btn:hover {
     cursor: pointer;
 }
