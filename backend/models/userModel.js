@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
         instagram: {
             type: String
         }
-    }
+    },
 });
 
 module.exports = mongoose.model("user", userSchema);
