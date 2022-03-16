@@ -13,6 +13,7 @@ function App() {
                 }}
             >
                 <Link to="/login">Login</Link>
+                <Link to="/main">Main</Link>
             </nav>
             <Outlet />
         </div>

@@ -1,0 +1,234 @@
+import * as THREE from "three";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+    useCursor,
+    MeshReflectorMaterial,
+    Image,
+    Text,
+    Environment,
+    useScroll,
+    ScrollControls,
+    Html,
+} from "@react-three/drei";
+
+import staticData from "../assets/staticData/lobbies";
+
+export default function LobbyList({ lobbies = staticData }) {
+    return (
+        <div className="fixed m-0 p-0 w-full h-full">
+            <Canvas
+                camera={{ fov: 90, position: [0, 10, 15] }}
+                dpr={window.devicePixelRatio}
+            >
+                <Suspense fallback={null}>
+                    <ScrollControls
+                        pages={2}
+                        distance={3}
+                        damping={4}
+                        horizontal
+                    >
+                        <color attach="background" args={["#191920"]} />
+                        <fog attach="fog" args={["#191920", 0, 15]} />
+                        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                            <planeGeometry args={[50, 50]} />
+                            <MeshReflectorMaterial color="#101010" />
+                            <ambientLight intensity={5} />
+                        </mesh>
+                        <Frames images={lobbies} />
+                    </ScrollControls>
+                </Suspense>
+            </Canvas>
+        </div>
+    );
+}
+
+function Frames({ images }) {
+    const ref = useRef();
+    const clicked = useRef(null);
+    const scroll = useScroll();
+    const p = new THREE.Vector3(0.5, 0.5, 2.5);
+    const q = new THREE.Quaternion();
+    useFrame(() => {
+        if (clicked.current) {
+            clicked.current.parent.updateWorldMatrix(true, true);
+            clicked.current.parent.localToWorld(p.set(0.5, 0.5, 1.25));
+            clicked.current.parent.getWorldQuaternion(q);
+        } else {
+            p.set(0.5, 0.5, 2.5);
+            q.identity();
+        }
+    });
+    useFrame((state) => {
+        state.camera.position.lerp(p, 0.025);
+        state.camera.quaternion.slerp(q, 0.025);
+    });
+    useFrame(() => {
+        ref.current.position.x = -scroll.offset * 40;
+    });
+    return (
+        <group
+            scale={[1, 1, 1]}
+            ref={ref}
+            onClick={(e) => {
+                e.stopPropagation();
+                if (clicked.current === e.object) {
+                    clicked.current = null;
+                    return;
+                }
+                clicked.current = e.object;
+            }}
+            onPointerMissed={(e) => {
+                e.stopPropagation();
+                clicked.current = null;
+            }}
+        >
+            {images.map((props, index) => (
+                <Frame
+                    key={props.ownerId}
+                    index={index}
+                    position={[index * 2.5, 0, 0]}
+                    {...props}
+                />
+            ))}
+        </group>
+    );
+}
+
+function Frame({ index, ownerId, title, description, url, ...props }) {
+    const [hovered, setHovered] = useState(false);
+    const [clicked, setClicked] = useState(false);
+    const random = useRef(Math.random());
+    const scroll = useScroll();
+    const groupRef = useRef();
+    const frame = useRef();
+    const image = useRef();
+    const c = new THREE.Color();
+    useCursor(hovered);
+    useFrame(() => {
+        frame.current.material.color.lerp(
+            c.set(hovered ? "orange" : "white").convertSRGBToLinear(),
+            0.1
+        );
+        let { x, y } = image.current.scale;
+        image.current.scale.x = THREE.MathUtils.lerp(
+            x,
+            hovered ? 0.85 : 0.92,
+            0.1
+        );
+        image.current.scale.y = THREE.MathUtils.lerp(
+            y,
+            hovered ? 0.85 : 0.92,
+            0.1
+        );
+    });
+    useFrame((state) => {
+        image.current.position.z =
+            1.0 +
+            0.3 *
+                Math.sin(
+                    state.clock.elapsedTime + random.current * 2 * Math.PI
+                );
+    });
+    function linear(x) {
+        const y = 0.1 * (x - index * 2.5);
+        return y;
+    }
+    function quadratic(x) {
+        const y = 0.05 * (x - index * 2.5) ** 2;
+        return y;
+    }
+    useFrame(() => {
+        groupRef.current.position.z = quadratic(scroll.offset * 40);
+        groupRef.current.rotation.y = linear(scroll.offset * 40);
+    });
+    return (
+        <group {...props} ref={groupRef}>
+            <mesh
+                name={ownerId}
+                onPointerOver={(e) => {
+                    setHovered(true);
+                }}
+                onPointerOut={(e) => {
+                    setHovered(false);
+                }}
+                onClick={(e) => {
+                    setClicked(true);
+                }}
+                onPointerMissed={(e) => {
+                    setClicked(false);
+                }}
+                scale={[1, 1, 0.05]}
+                position={[0, 0.5, 0]}
+            >
+                <boxGeometry />
+                <meshStandardMaterial
+                    color="#151515"
+                    metalness={0.5}
+                    roughness={0.5}
+                />
+                <mesh
+                    ref={frame}
+                    raycast={() => null}
+                    scale={[0.93, 0.9, 0.93]}
+                    position={[0, 0, 0.2]}
+                    color="white"
+                >
+                    <boxGeometry />
+                    <meshBasicMaterial toneMapped={false} fog={false} />
+                    <Image
+                        ref={image}
+                        raycast={() => null}
+                        position={[0, 0, 0.7]}
+                        url={url}
+                    />
+                </mesh>
+            </mesh>
+            <group position={[0.6, 1, 0]}>
+                <Text
+                    raycast={() => null}
+                    maxWidth={1}
+                    position={[0, 0, 0]}
+                    fontSize={0.05}
+                    anchorX="left"
+                    anchorY="top"
+                >
+                    {title}
+                </Text>
+                <Text
+                    raycast={() => null}
+                    maxWidth={0.85}
+                    position={[0, -0.07, 0]}
+                    fontSize={0.03}
+                    anchorX="left"
+                    anchorY="top"
+                >
+                    {ownerId}
+                </Text>
+                <Text
+                    raycast={() => null}
+                    maxWidth={0.85}
+                    position={[0, -0.14, 0]}
+                    fontSize={0.03}
+                    anchorX="left"
+                    anchorY="top"
+                >
+                    {description}
+                </Text>
+                {clicked ? (
+                    <Html
+                        position={[0.15, -0.85, 0]}
+                        scale={0.15}
+                        anchorX="left"
+                        anchorY="top"
+                        transform
+                    >
+                        <button className="bg-black rounded-full px-4 py-1">
+                            JOIN
+                        </button>
+                    </Html>
+                ) : null}
+            </group>
+        </group>
+    );
+}

@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import LRFormWrapper from "./routes/LRFromWrapper";
+import LobbyList from "./routes/LobbyList";
 
 ReactDOM.render(
     <React.StrictMode>
@@ -12,6 +13,9 @@ ReactDOM.render(
             <Routes>
                 <Route path="/" element={<App />}></Route>
                 <Route path="login" element={<LRFormWrapper />} />
+                <Route path="main" element={<LobbyList />}>
+                    <Route path=":cfId" element={null}></Route>
+                </Route>
                 <Route
                     path="*"
                     element={
