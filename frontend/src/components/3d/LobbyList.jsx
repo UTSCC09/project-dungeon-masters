@@ -264,7 +264,6 @@ function Frame({
                         scale={0.15}
                         anchorX="left"
                         anchorY="top"
-                        transform
                     >
                         <button
                             className="bg-black text-white rounded-full px-4 py-1"
