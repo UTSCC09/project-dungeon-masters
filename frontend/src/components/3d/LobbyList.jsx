@@ -11,7 +11,9 @@ import {
     Html,
 } from "@react-three/drei";
 
-import staticData from "../assets/staticData/lobbies";
+import staticData from "../../assets/staticData/lobbies";
+
+const cameraDefaultPos = [0.5, 0.2, 2.5];
 
 export default function LobbyList({
     lobbies = staticData,
@@ -23,7 +25,7 @@ export default function LobbyList({
             <Canvas
                 camera={{
                     fov: 90,
-                    position: [0.5, 0.5, 2.5],
+                    position: cameraDefaultPos,
                     rotation: [0, 0, 0],
                 }}
                 dpr={window.devicePixelRatio}
@@ -67,7 +69,7 @@ function Frames({ images, ...props }) {
             clicked.current.parent.localToWorld(p.set(0.5, 0.5, 1.25));
             clicked.current.parent.getWorldQuaternion(q);
         } else {
-            p.set(0.5, 0.5, 2.5);
+            p.set(...cameraDefaultPos);
             q.identity();
         }
     });
