@@ -3,6 +3,8 @@ import { Link, Outlet } from "react-router-dom";
 import "./App.css";
 import LobbyList from "./components/3d/LobbyList";
 
+import staticData from "./assets/staticData/lobbies";
+
 function App() {
     const searchTextRef = useRef("");
     return (
@@ -31,7 +33,11 @@ function App() {
                 </div>
             </nav>
             {/* TODO: Provide load functions */}
-            <LobbyList loadNextFunc={() => {}} loadPrevFunc={() => {}} />
+            <LobbyList
+                lobbies={staticData}
+                loadNextFunc={() => {}}
+                loadPrevFunc={() => {}}
+            />
         </div>
     );
 }

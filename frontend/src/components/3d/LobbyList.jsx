@@ -11,13 +11,11 @@ import {
     Html,
 } from "@react-three/drei";
 
-import staticData from "../../assets/staticData/lobbies";
-
 const cameraDefaultPos = [0.0, 0.2, 2.5];
 const frameSpacing = 2.5;
 
 export default function LobbyList({
-    lobbies = staticData,
+    lobbies,
     loadNextFunc = () => {},
     loadPrevFunc = () => {},
 }) {
@@ -49,6 +47,7 @@ export default function LobbyList({
                             images={lobbies}
                             loadNextFunc={loadNextFunc}
                             loadPrevFunc={loadPrevFunc}
+                            scrollFactor={2.5 * (lobbies.length - 1)}
                         />
                     </ScrollControls>
                 </Suspense>
@@ -57,7 +56,7 @@ export default function LobbyList({
     );
 }
 
-function Frames({ images, ...props }) {
+function Frames({ images, scrollFactor, ...props }) {
     const ref = useRef(null);
     const clicked = useRef(null);
     const scroll = useScroll();
@@ -81,7 +80,7 @@ function Frames({ images, ...props }) {
     });
     // Left and right motion of the entire list.
     useFrame(() => {
-        ref.current.position.x = -scroll.offset * 40;
+        ref.current.position.x = -scroll.offset * (2.5 * (images.length - 1));
     });
     return (
         <group
@@ -105,6 +104,7 @@ function Frames({ images, ...props }) {
                     index={-1}
                     position={[-frameSpacing, 0, 0]}
                     loadPrevFunc={props.loadPrevFunc}
+                    scrollFactor={scrollFactor}
                     url="/prev.png"
                     {...props}
                 />
@@ -114,6 +114,7 @@ function Frames({ images, ...props }) {
                     key={props.ownerId}
                     index={index}
                     position={[index * frameSpacing, 0, 0]}
+                    scrollFactor={scrollFactor}
                     {...props}
                 />
             ))}
@@ -123,6 +124,7 @@ function Frames({ images, ...props }) {
                     position={[images.length * frameSpacing, 0, 0]}
                     loadNextFunc={props.loadNextFunc}
                     url="/next.png"
+                    scrollFactor={scrollFactor}
                     {...props}
                 />
             ) : null}
@@ -137,6 +139,7 @@ function Frame({
     description,
     url,
     navigateFunc,
+    scrollFactor,
     ...props
 }) {
     const [hovered, setHovered] = useState(false);
@@ -182,8 +185,8 @@ function Frame({
         return y;
     }
     useFrame(() => {
-        groupRef.current.position.z = quadratic(scroll.offset * 40);
-        groupRef.current.rotation.y = linear(scroll.offset * 40);
+        groupRef.current.position.z = quadratic(scroll.offset * scrollFactor);
+        groupRef.current.rotation.y = linear(scroll.offset * scrollFactor);
     });
     return (
         <group {...props} ref={groupRef}>
@@ -281,7 +284,7 @@ function Frame({
     );
 }
 
-function FrameTerminal({ index, loadNextFunc, url, ...props }) {
+function FrameTerminal({ index, loadNextFunc, url, scrollFactor, ...props }) {
     const groupRef = useRef();
     const scroll = useScroll();
     function linear(x) {
@@ -293,8 +296,8 @@ function FrameTerminal({ index, loadNextFunc, url, ...props }) {
         return y;
     }
     useFrame(() => {
-        groupRef.current.position.z = quadratic(scroll.offset * 40);
-        groupRef.current.rotation.y = linear(scroll.offset * 40);
+        groupRef.current.position.z = quadratic(scroll.offset * scrollFactor);
+        groupRef.current.rotation.y = linear(scroll.offset * scrollFactor);
     });
     return (
         <group {...props} ref={groupRef}>
