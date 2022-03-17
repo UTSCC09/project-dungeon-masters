@@ -2,7 +2,6 @@ import React, { useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
 import "./App.css";
 import LobbyList from "./components/3d/LobbyList";
-import AppUI from "./screens/AppUI";
 
 function App() {
     const searchTextRef = useRef("");

@@ -13,7 +13,8 @@ import {
 
 import staticData from "../../assets/staticData/lobbies";
 
-const cameraDefaultPos = [0.5, 0.2, 2.5];
+const cameraDefaultPos = [0.0, 0.2, 2.5];
+const frameSpacing = 2.5;
 
 export default function LobbyList({
     lobbies = staticData,
@@ -102,7 +103,7 @@ function Frames({ images, ...props }) {
             {props.loadPrevFunc ? (
                 <FrameTerminal
                     index={-1}
-                    position={[-2.5, 0, 0]}
+                    position={[-frameSpacing, 0, 0]}
                     loadPrevFunc={props.loadPrevFunc}
                     url="/prev.png"
                     {...props}
@@ -112,14 +113,14 @@ function Frames({ images, ...props }) {
                 <Frame
                     key={props.ownerId}
                     index={index}
-                    position={[index * 2.5, 0, 0]}
+                    position={[index * frameSpacing, 0, 0]}
                     {...props}
                 />
             ))}
             {props.loadNextFunc ? (
                 <FrameTerminal
                     index={images.length}
-                    position={[images.length * 2.5, 0, 0]}
+                    position={[images.length * frameSpacing, 0, 0]}
                     loadNextFunc={props.loadNextFunc}
                     url="/next.png"
                     {...props}
@@ -173,11 +174,11 @@ function Frame({
                 );
     });
     function linear(x) {
-        const y = 0.1 * (x - index * 2.5);
+        const y = 0.1 * (x - index * frameSpacing);
         return y;
     }
     function quadratic(x) {
-        const y = 0.05 * (x - index * 2.5) ** 2;
+        const y = 0.05 * (x - index * frameSpacing) ** 2;
         return y;
     }
     useFrame(() => {
@@ -266,7 +267,7 @@ function Frame({
                         transform
                     >
                         <button
-                            className="bg-black rounded-full px-4 py-1"
+                            className="bg-black text-white rounded-full px-4 py-1"
                             onClick={(e) => {
                                 // TODO: Setup navigation
                                 // navigateFunc("/")
@@ -285,11 +286,11 @@ function FrameTerminal({ index, loadNextFunc, url, ...props }) {
     const groupRef = useRef();
     const scroll = useScroll();
     function linear(x) {
-        const y = 0.1 * (x - index * 2.5);
+        const y = 0.1 * (x - index * frameSpacing);
         return y;
     }
     function quadratic(x) {
-        const y = 0.05 * (x - index * 2.5) ** 2;
+        const y = 0.05 * (x - index * frameSpacing) ** 2;
         return y;
     }
     useFrame(() => {
