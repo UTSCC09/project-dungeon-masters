@@ -6,7 +6,6 @@ import {
     MeshReflectorMaterial,
     Image,
     Text,
-    Environment,
     useScroll,
     ScrollControls,
     Html,
@@ -14,11 +13,19 @@ import {
 
 import staticData from "../assets/staticData/lobbies";
 
-export default function LobbyList({ lobbies = staticData }) {
+export default function LobbyList({
+    lobbies = staticData,
+    loadNextFunc = () => {},
+    loadPrevFunc = () => {},
+}) {
     return (
         <div className="fixed m-0 p-0 w-full h-full">
             <Canvas
-                camera={{ fov: 90, position: [0, 10, 15] }}
+                camera={{
+                    fov: 90,
+                    position: [0.5, 0.5, 2.5],
+                    rotation: [0, 0, 0],
+                }}
                 dpr={window.devicePixelRatio}
             >
                 <Suspense fallback={null}>
@@ -35,7 +42,11 @@ export default function LobbyList({ lobbies = staticData }) {
                             <MeshReflectorMaterial color="#101010" />
                             <ambientLight intensity={5} />
                         </mesh>
-                        <Frames images={lobbies} />
+                        <Frames
+                            images={lobbies}
+                            loadNextFunc={loadNextFunc}
+                            loadPrevFunc={loadPrevFunc}
+                        />
                     </ScrollControls>
                 </Suspense>
             </Canvas>
@@ -43,12 +54,13 @@ export default function LobbyList({ lobbies = staticData }) {
     );
 }
 
-function Frames({ images }) {
-    const ref = useRef();
+function Frames({ images, ...props }) {
+    const ref = useRef(null);
     const clicked = useRef(null);
     const scroll = useScroll();
     const p = new THREE.Vector3(0.5, 0.5, 2.5);
     const q = new THREE.Quaternion();
+    // Set the destination of the camera to the clicked element.
     useFrame(() => {
         if (clicked.current) {
             clicked.current.parent.updateWorldMatrix(true, true);
@@ -59,10 +71,12 @@ function Frames({ images }) {
             q.identity();
         }
     });
+    // Smooth camera rotation and translation.
     useFrame((state) => {
         state.camera.position.lerp(p, 0.025);
         state.camera.quaternion.slerp(q, 0.025);
     });
+    // Left and right motion of the entire list.
     useFrame(() => {
         ref.current.position.x = -scroll.offset * 40;
     });
@@ -83,6 +97,15 @@ function Frames({ images }) {
                 clicked.current = null;
             }}
         >
+            {props.loadPrevFunc ? (
+                <FrameTerminal
+                    index={-1}
+                    position={[-2.5, 0, 0]}
+                    loadPrevFunc={props.loadPrevFunc}
+                    url="/prev.png"
+                    {...props}
+                />
+            ) : null}
             {images.map((props, index) => (
                 <Frame
                     key={props.ownerId}
@@ -91,11 +114,28 @@ function Frames({ images }) {
                     {...props}
                 />
             ))}
+            {props.loadNextFunc ? (
+                <FrameTerminal
+                    index={images.length}
+                    position={[images.length * 2.5, 0, 0]}
+                    loadNextFunc={props.loadNextFunc}
+                    url="/next.png"
+                    {...props}
+                />
+            ) : null}
         </group>
     );
 }
 
-function Frame({ index, ownerId, title, description, url, ...props }) {
+function Frame({
+    index,
+    ownerId,
+    title,
+    description,
+    url,
+    navigateFunc,
+    ...props
+}) {
     const [hovered, setHovered] = useState(false);
     const [clicked, setClicked] = useState(false);
     const random = useRef(Math.random());
@@ -198,7 +238,7 @@ function Frame({ index, ownerId, title, description, url, ...props }) {
                 <Text
                     raycast={() => null}
                     maxWidth={0.85}
-                    position={[0, -0.07, 0]}
+                    position={[0, -0.082, 0]}
                     fontSize={0.03}
                     anchorX="left"
                     anchorY="top"
@@ -223,12 +263,69 @@ function Frame({ index, ownerId, title, description, url, ...props }) {
                         anchorY="top"
                         transform
                     >
-                        <button className="bg-black rounded-full px-4 py-1">
-                            JOIN
+                        <button
+                            className="bg-black rounded-full px-4 py-1"
+                            onClick={(e) => {
+                                // TODO: Setup navigation
+                                // navigateFunc("/")
+                            }}
+                        >
+                            Join
                         </button>
                     </Html>
                 ) : null}
             </group>
+        </group>
+    );
+}
+
+function FrameTerminal({ index, loadNextFunc, url, ...props }) {
+    const groupRef = useRef();
+    const scroll = useScroll();
+    function linear(x) {
+        const y = 0.1 * (x - index * 2.5);
+        return y;
+    }
+    function quadratic(x) {
+        const y = 0.05 * (x - index * 2.5) ** 2;
+        return y;
+    }
+    useFrame(() => {
+        groupRef.current.position.z = quadratic(scroll.offset * 40);
+        groupRef.current.rotation.y = linear(scroll.offset * 40);
+    });
+    return (
+        <group {...props} ref={groupRef}>
+            <mesh
+                onClick={(e) => {
+                    console.log("clicked");
+                    loadNextFunc();
+                    // TODO: Goto next screen?
+                }}
+                scale={[1, 1, 0.05]}
+                position={[0, 0.5, 0]}
+            >
+                <boxGeometry />
+                <meshStandardMaterial
+                    color="#151515"
+                    metalness={0.5}
+                    roughness={0.5}
+                />
+                <mesh
+                    raycast={() => null}
+                    scale={[0.93, 0.9, 0.93]}
+                    position={[0, 0, 0.2]}
+                    color="white"
+                >
+                    <boxGeometry />
+                    <meshBasicMaterial toneMapped={false} fog={false} />
+                    <Image
+                        raycast={() => null}
+                        position={[0, 0, 0.7]}
+                        url={url}
+                    />
+                </mesh>
+            </mesh>
         </group>
     );
 }
