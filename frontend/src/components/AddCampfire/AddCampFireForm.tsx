@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AddCampFireInfoForm } from "./AddCampFireInfoForm";
 import { AddCampFireSceneForm } from "./AddCampFireSceneForm";
 import sPhotos from './AddScene/photos.json'; // static photos, change later
@@ -71,18 +72,22 @@ export function AddCampFireForm() {
     // }
 
     return(
-        <div className='dark min-h-screen grid bg-gradient-to-t to-white dark:to-zinc-900 via-stone-600 from-amber-200'>
-            <div className="top-0 w-full h-20 bg-amber-700 grid grid-cols-3 place-content-center">
+        <div className='dark min-h-screen grid bg-gradient-to-t to-white dark:to-black via-zinc-600 from-amber-100'>
+            <div className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900 max-h-14">
                 { page === 0 ?
-                    <div className="h-18 m-1 ml-5 btn rounded-md bg-amber-200 text-red-800 p-2 justify-self-start">Cancel</div>
+                    <div className="m-1 ml-5 pl-4 text-white">
+                        <Link to="/">Cancel</Link>
+                    </div>
                 :
-                    <div className="h-18 w-14 m-1 ml-5 btn btn_previous justify-self-start" onClick={prevPage}/>
+                    <div className="h-6 w-14 ml-5 pl-8 text-white btn btn_previous " onClick={prevPage}>Back</div>
                 }
-                <div className="text-5xl text-amber-200 place-self-center">{title}</div>
+                <div className="text-lg text-white ">{title}</div>
                 { page === 2 ?
-                    <div className="h-18 m-1 mr-5 btn rounded-md bg-amber-200 text-red-800 p-2 justify-self-end">Confirm</div>
+                    <div className="m-1 mr-5 pr-4 text-white">
+                        <Link to="/">Confirm</Link>
+                    </div>
                 :
-                    <div className="h-18 w-14 m-1 mr-5 btn btn_next justify-self-end" onClick={nextPage}/>
+                    <div className=" h-6 w-14 mr-5 pl-8 text-white btn btn_next" onClick={nextPage}>Next</div>
                 }
             </div>
             <form className='w-full h-full place-self-center'>

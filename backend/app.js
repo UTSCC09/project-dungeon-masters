@@ -7,7 +7,7 @@ const {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLList,
+    GraphQLList, GraphQLInputObjectType,
 } = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -43,38 +43,179 @@ const db = mongoose.connection;
 db.on("error", (err) => console.error(err));
 db.once("open", () => console.log("Connected to Database"));
 
-const Sample = require("./models/sampleModle");
+const User = require("./models/userModel");
+const {UserType, UserInputType} = require("./GraphqlTypes/UserType")
+
+const Campfire = require("./models/CampfireModel");
+const {CampfireType, CampfireInputType} = require("./GraphqlTypes/CampfireType")
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
     description: "Root query",
     fields: () => ({
-        sample: {
-            type: new GraphQLList(SampleType),
-            resolve: async () => {
-                const docs = await Sample.find();
-                console.log(docs);
-                return docs;
+        users: {
+            type: new GraphQLList(UserType),
+            args: {
+                usernames: { type: new GraphQLList(GraphQLString)},
+            },
+            resolve: async (source, args) => {
+                if (args.usernames === undefined || args.usernames.length === 0) {
+                    return User.find();
+                }
+                return User.find({
+                    'username': {
+                        "$in": args.usernames
+                    }
+                });
+            },
+        },
+        campfires: {
+            type: new GraphQLList(CampfireType),
+            args: {
+                campfireIds: { type: new GraphQLList(GraphQLString) },
+            },
+            resolve: async (source, args) => {
+                if (args.campfireIds === undefined || args.campfireIds.length === 0) {
+                    return Campfire.find();
+                }
+                return Campfire.find({
+                    '_id': {
+                        "$in": args.campfireIds
+                    }
+                });
             },
         },
     }),
 });
 
-const SampleType = new GraphQLObjectType({
-    name: "Sample",
-    description: "This is a sample object",
+const RootMutationType = new GraphQLObjectType({
+    name: "Mutation",
+    description: "Root Mutation",
     fields: () => ({
-        name: {
-            type: GraphQLString,
+        addUser: {
+            type: UserType,
+            args: {
+                userData: { type: UserInputType },
+            },
+            resolve: async (source, args) => {
+                return await User.create({
+                    username: args.userData.username,
+                    email: args.userData.email,
+                    password: args.userData.password,
+                    profilePicture: args.userData.profilePicture,
+                    socialMedia: args.userData.socialMedia
+                });
+            }
         },
-        info: {
-            type: GraphQLString,
+        modifyUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+                userData: { type: UserInputType },
+            },
+            resolve: async(source, args) => {
+                return User.findOneAndUpdate({username: args.username}, {
+                    email: args.userData.email,
+                    password: args.userData.password,
+                    profilePicture: args.userData.profilePicture,
+                    socialMedia: args.userData.socialMedia
+                }, {new: true});
+            }
+        },
+        deleteUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+            },
+            resolve: async(source, args) => {
+                try {
+                    await Campfire.updateMany({}, {
+                        "$pull": {
+                            "followers": args.username
+                        }
+                    });
+                    return await User.findOneAndDelete({username: args.username});
+                } catch (e) {
+                    return e;
+                }
+            }
+        },
+        addCampfire: {
+            type: CampfireType,
+            args: {
+                campfireData: { type: CampfireInputType },
+                followers: { type: new GraphQLList(GraphQLString) }
+            },
+            resolve: async (source, args) => {
+                return await Campfire.create({
+                    ownerId: args.campfireData.ownerId,
+                    title: args.campfireData.title,
+                    description: args.campfireData.description,
+                    status: args.campfireData.status,
+                    followers: args.followers
+                });
+            }
+        },
+        modifyCampfireDetails: {
+            type: CampfireType,
+            args: {
+                campfireId: { type: GraphQLString },
+                campfireData: { type: CampfireInputType },
+            },
+            resolve: async (source, args) => {
+                return Campfire.findByIdAndUpdate(args.campfireId, {
+                    ownerId: args.campfireData.ownerId,
+                    title: args.campfireData.title,
+                    description: args.campfireData.description,
+                    status: args.campfireData.status,
+                }, {new: true});
+            }
+        },
+        addFollowers: {
+            type: CampfireType,
+            args: {
+                campfireId: { type: GraphQLString },
+                usernames: { type: new GraphQLList(GraphQLString)},
+            },
+            resolve: async (source, args) => {
+                return Campfire.findByIdAndUpdate(args.campfireId, {
+                    "$push": {
+                        "followers": {
+                            "$each": args.usernames
+                        }
+                    }
+                }, {new: true, upsert: true});
+            }
+        },
+        deleteFollowers: {
+            type: CampfireType,
+            args: {
+                campfireId: { type: GraphQLString },
+                usernames: { type: new GraphQLList(GraphQLString)},
+            },
+            resolve: async (source, args) => {
+                return Campfire.findByIdAndUpdate(args.campfireId, {
+                    "$pullAll": {
+                        "followers": args.usernames
+                    }
+                }, {new: true});
+            }
+        },
+        deleteCampfire: {
+            type: CampfireType,
+            args: {
+                campfireId: { type: GraphQLString },
+            },
+            resolve: async(source, args) => {
+                return Campfire.findOneAndDelete({_id: args.campfireId});
+            }
         },
     }),
 });
 
 const schema = new GraphQLSchema({
     query: RootQueryType,
+    mutation: RootMutationType,
 });
 
 app.use(
@@ -87,7 +228,7 @@ app.use(
 
 const http = require("http");
 const { resolve } = require("path");
-const PORT = 5000;
+const PORT = 3000;
 
 http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
