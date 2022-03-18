@@ -8,7 +8,7 @@ const CampfireType = new GraphQLObjectType({
         _id: {
             type: GraphQLString
         },
-        ownerId: {
+        ownerUsername: {
             type: GraphQLString,
         },
         title: {
@@ -35,9 +35,6 @@ const CampfireType = new GraphQLObjectType({
 const CampfireInputType = new GraphQLInputObjectType({
     name: "CampfireInputObject",
     fields: () => ({
-        ownerId: {
-            type: GraphQLString,
-        },
         title: {
             type: GraphQLString
         },

@@ -1,7 +1,7 @@
 const { default: mongoose } = require("mongoose");
 
 const campfireSchema = new mongoose.Schema({
-    ownerId: {
+    ownerUsername: {
         type: String,
         required: true
     },
