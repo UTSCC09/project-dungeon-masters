@@ -7,12 +7,13 @@ const {
     GraphQLSchema,
     GraphQLObjectType,
     GraphQLString,
-    GraphQLList, GraphQLBoolean,
+    GraphQLList,
+    GraphQLBoolean,
 } = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
 const app = express();
-const cors = require('cors');
+const cors = require("cors");
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -25,7 +26,7 @@ const cookie = require("cookie");
 
 const session = require("express-session");
 
-app.use(function (req, res, next){
+app.use(function (req, res, next) {
     console.log("HTTP request", req.method, req.url, req.body);
     next();
 });
@@ -53,32 +54,41 @@ db.on("error", (err) => console.error(err));
 db.once("open", () => console.log("Connected to Database"));
 
 const User = require("./models/userModel");
-const {UserType, UserInputType} = require("./GraphqlTypes/UserType")
+const { UserType, UserInputType } = require("./GraphqlTypes/UserType");
 
 const Campfire = require("./models/CampfireModel");
-const {CampfireType, CampfireInputType} = require("./GraphqlTypes/CampfireType")
+const {
+    CampfireType,
+    CampfireInputType,
+} = require("./GraphqlTypes/CampfireType");
 
 const isAuthenticated = (context) => {
     if (!context.session.username) throw new Error("Not Authenticated");
-}
+};
 
 const signInUser = (context, user) => {
     context.session.username = user.username.trim();
-    context.res.setHeader('Set-Cookie', cookie.serialize('username', user.username, {
-        path: '/',
-        maxAge: null,
-        secure: false,
-        sameSite: true
-    }));
-}
+    context.res.setHeader(
+        "Set-Cookie",
+        cookie.serialize("username", user.username, {
+            path: "/",
+            maxAge: null,
+            secure: false,
+            sameSite: true,
+        })
+    );
+};
 
 const signOutUser = (context) => {
     context.session.destroy();
-    context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
-        path: '/',
-        maxAge: null
-    }));
-}
+    context.res.setHeader(
+        "Set-Cookie",
+        cookie.serialize("username", "", {
+            path: "/",
+            maxAge: null,
+        })
+    );
+};
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -87,18 +97,21 @@ const RootQueryType = new GraphQLObjectType({
         users: {
             type: new GraphQLList(UserType),
             args: {
-                usernames: { type: new GraphQLList(GraphQLString)},
+                usernames: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
                 console.log(context);
                 isAuthenticated(context);
-                if (args.usernames === undefined || args.usernames.length === 0) {
+                if (
+                    args.usernames === undefined ||
+                    args.usernames.length === 0
+                ) {
                     return User.find();
                 }
                 return User.find({
-                    'username': {
-                        "$in": args.usernames.trim()
-                    }
+                    username: {
+                        $in: args.usernames.trim(),
+                    },
                 });
             },
         },
@@ -112,7 +125,9 @@ const RootQueryType = new GraphQLObjectType({
                 if (args.owned === undefined || !args.owned) {
                     return Campfire.find();
                 }
-                return Campfire.find({ownerUsername: context.session.username});
+                return Campfire.find({
+                    ownerUsername: context.session.username,
+                });
             },
         },
     }),
@@ -125,18 +140,18 @@ const RootMutationType = new GraphQLObjectType({
         signUp: {
             type: UserType,
             args: {
-                username: {type: GraphQLString},
-                password: {type: GraphQLString}
+                username: { type: GraphQLString },
+                password: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
                 const hashedPassword = await new Promise((resolve, reject) => {
                     bcrypt.genSalt(saltRounds, (err, salt) => {
                         bcrypt.hash(args.password.trim(), salt, (err, hash) => {
-                            if (err) reject(err)
-                            resolve(hash)
+                            if (err) reject(err);
+                            resolve(hash);
                         });
                     });
-                })
+                });
 
                 let user = await User.create({
                     username: args.username,
@@ -144,27 +159,33 @@ const RootMutationType = new GraphQLObjectType({
                     profilePicture: "",
                     socialMedia: {
                         twitter: "",
-                        instagram: ""
-                    }
+                        instagram: "",
+                    },
                 });
 
                 signInUser(context, user);
 
                 return user;
-            }
+            },
         },
         signIn: {
             type: UserType,
             args: {
-                username: {type: GraphQLString},
-                password: {type: GraphQLString}
+                username: { type: GraphQLString },
+                password: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
-                const userDocs = await User.find({username: args.username.trim()});
-                if (userDocs === undefined || userDocs[0] === undefined) throw new Error("User not found");
+                const userDocs = await User.find({
+                    username: args.username.trim(),
+                });
+                if (userDocs === undefined || userDocs[0] === undefined)
+                    throw new Error("User not found");
 
                 let user = userDocs[0];
-                let validPass = await bcrypt.compare(args.password.trim(), user.password);
+                let validPass = await bcrypt.compare(
+                    args.password.trim(),
+                    user.password
+                );
 
                 if (validPass) {
                     signInUser(context, user);
@@ -173,56 +194,66 @@ const RootMutationType = new GraphQLObjectType({
                 }
 
                 return user;
-            }
+            },
         },
         signOut: {
             type: UserType,
             resolve: async (source, args, context) => {
-                signOutUser(context)
-
-                return new User;
-            }
+                signOutUser(context);
+                return new User();
+            },
         },
         modifyUser: {
             type: UserType,
             args: {
                 userData: { type: UserInputType },
             },
-            resolve: async(source, args, context) => {
+            resolve: async (source, args, context) => {
                 isAuthenticated(context);
-                return User.findOneAndUpdate({username: context.session.username}, {
-                    password: args.userData.password,
-                    profilePicture: args.userData.profilePicture,
-                    socialMedia: args.userData.socialMedia
-                }, {new: true});
-            }
+                return User.findOneAndUpdate(
+                    { username: context.session.username },
+                    {
+                        password: args.userData.password,
+                        profilePicture: args.userData.profilePicture,
+                        socialMedia: args.userData.socialMedia,
+                    },
+                    { new: true }
+                );
+            },
         },
         deleteUser: {
             type: UserType,
-            resolve: async(source, args, context) => {
+            resolve: async (source, args, context) => {
                 isAuthenticated(context);
                 try {
-                    await Campfire.updateMany({}, {
-                        "$pull": {
-                            "followers": args.username
+                    await Campfire.updateMany(
+                        {},
+                        {
+                            $pull: {
+                                followers: args.username,
+                            },
                         }
+                    );
+                    await Campfire.deleteMany({
+                        ownerUsername: context.session.username,
                     });
-                    await Campfire.deleteMany({ownerUsername: context.session.username});
-                    const deletedUser = await User.findOneAndDelete({username: context.session.username});
+                    const deletedUser = await User.findOneAndDelete({
+                        username: context.session.username,
+                    });
 
-                    signOutUser(context)
+                    signOutUser(context);
 
                     return deletedUser;
                 } catch (e) {
                     return e;
                 }
-            }
+            },
         },
         addCampfire: {
             type: CampfireType,
             args: {
                 campfireData: { type: CampfireInputType },
-                followers: { type: new GraphQLList(GraphQLString) }
+                followers: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
@@ -231,9 +262,9 @@ const RootMutationType = new GraphQLObjectType({
                     title: args.campfireData.title,
                     description: args.campfireData.description,
                     status: args.campfireData.status,
-                    followers: args.followers
+                    followers: args.followers,
                 });
-            }
+            },
         },
         modifyCampfireDetails: {
             type: CampfireType,
@@ -243,63 +274,78 @@ const RootMutationType = new GraphQLObjectType({
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
-                return Campfire.findOneAndUpdate({_id: args.campfireId, ownerUsername: context.session.username}, {
-                    title: args.campfireData.title,
-                    description: args.campfireData.description,
-                    status: args.campfireData.status,
-                }, {new: true});
-            }
+                return Campfire.findOneAndUpdate(
+                    {
+                        _id: args.campfireId,
+                        ownerUsername: context.session.username,
+                    },
+                    {
+                        title: args.campfireData.title,
+                        description: args.campfireData.description,
+                        status: args.campfireData.status,
+                    },
+                    { new: true }
+                );
+            },
         },
         addFollowers: {
             type: CampfireType,
             args: {
                 campfireId: { type: GraphQLString },
-                usernames: { type: new GraphQLList(GraphQLString)},
+                usernames: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
-                return Campfire.findOneAndUpdate({
-                    _id: args.campfireId,
-                    ownerUsername: context.session.username
-                }, {
-                    "$addToSet": {
-                        "followers": {
-                            "$each": args.usernames
-                        }
-                    }
-                }, {new: true});
-            }
+                return Campfire.findOneAndUpdate(
+                    {
+                        _id: args.campfireId,
+                        ownerUsername: context.session.username,
+                    },
+                    {
+                        $addToSet: {
+                            followers: {
+                                $each: args.usernames,
+                            },
+                        },
+                    },
+                    { new: true }
+                );
+            },
         },
         deleteFollowers: {
             type: CampfireType,
             args: {
                 campfireId: { type: GraphQLString },
-                usernames: { type: new GraphQLList(GraphQLString)},
+                usernames: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
-                return Campfire.findOneAndUpdate({
-                    _id: args.campfireId,
-                    ownerUsername: context.session.username
-                }, {
-                    "$pullAll": {
-                        "followers": args.usernames
-                    }
-                }, {new: true});
-            }
+                return Campfire.findOneAndUpdate(
+                    {
+                        _id: args.campfireId,
+                        ownerUsername: context.session.username,
+                    },
+                    {
+                        $pullAll: {
+                            followers: args.usernames,
+                        },
+                    },
+                    { new: true }
+                );
+            },
         },
         deleteCampfire: {
             type: CampfireType,
             args: {
                 campfireId: { type: GraphQLString },
             },
-            resolve: async(source, args, context) => {
+            resolve: async (source, args, context) => {
                 isAuthenticated(context);
                 return Campfire.findOneAndDelete({
                     _id: args.campfireId,
-                    ownerUsername: context.session.username
+                    ownerUsername: context.session.username,
                 });
-            }
+            },
         },
     }),
 });
@@ -309,41 +355,38 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
-
-var whitelist = ['http://localhost:3000',/** other domains if any */ ];
+var whitelist = ["http://localhost:3000" /** other domains if any */];
 var corsOptions = {
     credentials: true,
-    origin: function(origin, callback){
+    origin: function (origin, callback) {
         // allow requests with no origin
         // (like mobile apps or curl requests)
-        if(!origin) return callback(null, true);
-        if(whitelist.indexOf(origin) === -1){
-          var msg = 'The CORS policy for this site does not ' +
-                    'allow access from the specified Origin.';
-          return callback(new Error(msg), false);
+        if (!origin) return callback(null, true);
+        if (whitelist.indexOf(origin) === -1) {
+            var msg =
+                "The CORS policy for this site does not " +
+                "allow access from the specified Origin.";
+            return callback(new Error(msg), false);
         }
         return callback(null, true);
-      }
-}
+    },
+};
 
 app.use(cors(corsOptions));
-app.use(
-    "/graphql",
-    (req, res, next) => {
-        expressGraphQL({
-            schema: schema,
-            context: {
-                session: req.session,
-                res: res
-            },
-            graphiql: true
-        })(req, res, next)
-    }
-);
+app.use("/graphql", (req, res, next) => {
+    expressGraphQL({
+        schema: schema,
+        context: {
+            session: req.session,
+            res: res,
+        },
+        graphiql: true,
+    })(req, res, next);
+});
 
 const http = require("http");
 const { resolve } = require("path");
-const {hash} = require("bcrypt");
+const { hash } = require("bcrypt");
 const PORT = 4000;
 
 http.createServer(app).listen(PORT, function (err) {

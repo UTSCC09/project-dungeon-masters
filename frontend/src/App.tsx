@@ -4,14 +4,37 @@ import "./App.css";
 import LobbyList from "./components/3d/LobbyList";
 
 import staticData from "./assets/staticData/lobbies";
+import { useCookies } from "react-cookie";
 
 function App() {
     const searchTextRef = useRef("");
+    const [cookies, setCookie, removeCookie] = useCookies(["username"]);
+    const isLoggedin = cookies.username && cookies.username !== "";
+
+    function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
+        e.preventDefault();
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: ``, // TODO: Query string for signout
+            }),
+        });
+        removeCookie("username");
+    }
+
     return (
         <div className="App">
             <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
                 <div className="pl-4 text-white">
-                    <Link to="/login">Login</Link>
+                    {isLoggedin ? (
+                        `Welcome back, ${cookies.username}`
+                    ) : (
+                        <Link to="/login">Login</Link>
+                    )}
                 </div>
                 <input
                     className="bg-gray-600 text-white flex-grow max-w-lg mx-8 w-72 px-4 rounded-full"
@@ -28,6 +51,15 @@ function App() {
                     }}
                 />
                 <div className="pr-4 text-white">
+                    {isLoggedin ? (
+                        <a
+                            className="mr-6"
+                            href="#"
+                            onClick={(e) => onLogOut(e)}
+                        >
+                            Log out
+                        </a>
+                    ) : null}
                     {/* TODO: Add a link to the lobby creation page */}
                     <Link to="/addCampfire">Lit Camp Fire</Link>
                 </div>
