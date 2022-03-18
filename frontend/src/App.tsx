@@ -29,7 +29,7 @@ function App() {
                 />
                 <div className="pr-4 text-white">
                     {/* TODO: Add a link to the lobby creation page */}
-                    <Link to="/">Lit Camp Fire</Link>
+                    <Link to="/addCampfire">Lit Camp Fire</Link>
                 </div>
             </nav>
             {/* TODO: Provide load functions */}

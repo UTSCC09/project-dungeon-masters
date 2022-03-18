@@ -14,3 +14,31 @@ code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
 }
+.btn{
+    background-size:contain;
+    background-repeat: no-repeat;
+}
+
+.btn:hover {
+    cursor: pointer;
+}
+
+.btn_next {
+    background-image: url("../public/media/next.png");
+}
+
+.btn_previous {
+    background-image: url("../public/media/previous.png");
+}
+
+.btn_remove {
+    background-image: url("../public/media/remove.png");
+}
+
+.btn_add {
+    background-image: url("../public/media/add.png");
+}
+
+.pane_overlay {
+    background-color: #353131;
+}
