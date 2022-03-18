@@ -87,12 +87,14 @@ const Login = function (props: PropsType) {
                         type="text"
                         placeholder="Username"
                         onChange={(e) => setUsername(e.target.value)}
+                        required
                     ></input>
                     <input
                         className="rounded h-6 w-52 px-2 mb-6"
                         type="password"
                         placeholder="Password"
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     ></input>
                     <button
                         className="bg-warm text-white py-3 rounded-lg mb-4"

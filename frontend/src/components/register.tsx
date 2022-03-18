@@ -33,6 +33,16 @@ const Register = function (props: PropsType) {
             setErrorMessage("Passwords does not match!");
             return;
         }
+        if (process.env.NODE_ENV && process.env.NODE_ENV !== "development") {
+            if (username.length < 5) {
+                setErrorMessage("Username must be at least 5 characters long.");
+                return;
+            }
+            if (password.length < 6) {
+                setErrorMessage("Password must be at least 6 characters long.");
+                return;
+            }
+        }
         try {
             fetch("http://localhost:4000/graphql/", {
                 method: "POST",
@@ -94,12 +104,14 @@ const Register = function (props: PropsType) {
                         type="text"
                         placeholder="Username"
                         onChange={(e) => setUsername(e.target.value)}
+                        required
                     ></input>
                     <input
                         className="rounded h-6 w-52 px-2 mb-6 bg-light-grey"
                         type="password"
                         placeholder="Password"
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     ></input>
                     <input
                         ref={pwdConfirmRef}
@@ -107,6 +119,7 @@ const Register = function (props: PropsType) {
                         type="password"
                         placeholder="Confirm password"
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
                     ></input>
                     <button
                         className="bg-warm text-white py-3 rounded-lg mb-4"
