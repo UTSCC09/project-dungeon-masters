@@ -64,7 +64,7 @@ const isAuthenticated = (context) => {
 
 const signInUser = (context, user) => {
     context.session.username = user.username.trim();
-    context.res.setHeader('Set-Cookie', cookie.serialize('username', user._id, {
+    context.res.setHeader('Set-Cookie', cookie.serialize('username', user.username, {
         path: '/',
         maxAge: null,
         secure: false,
@@ -314,7 +314,7 @@ var whitelist = ['http://localhost:3000',/** other domains if any */ ];
 var corsOptions = {
     credentials: true,
     origin: function(origin, callback){
-        // allow requests with no origin 
+        // allow requests with no origin
         // (like mobile apps or curl requests)
         if(!origin) return callback(null, true);
         if(allowedOrigins.indexOf(origin) === -1){
@@ -326,7 +326,7 @@ var corsOptions = {
       }
 }
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 app.use(
     "/graphql",
     (req, res, next) => {
