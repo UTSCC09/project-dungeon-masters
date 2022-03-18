@@ -14,9 +14,12 @@ const Register = function (props: PropsType) {
 
     const pwdConfirmRef = useRef(null);
     const registerQuery = `
-        query {
-            // TODO: Write the graphql query
-        }`;
+    mutation signIn($username: String, $password: String) {
+  signIn(username: $username, password: $password) {
+    _id
+    username
+  }
+}`;
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -30,7 +33,7 @@ const Register = function (props: PropsType) {
         }
         try {
             let result: any;
-            result = await fetch("http://localhost:5000/graphql/", {
+            result = await fetch("http://localhost:80/graphql/", {
                 method: "POST",
                 headers: {
                     "content-type": "application/json; charset=UTF-8",

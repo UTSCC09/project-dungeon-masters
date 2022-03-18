@@ -21,7 +21,7 @@ const Login = function (props: PropsType) {
         e.preventDefault();
         try {
             let result: any;
-            result = await fetch("http://localhost:5000/graphql/", {
+            result = await fetch("http://localhost:4000/graphql/", {
                 method: "POST",
                 headers: {
                     "content-type": "application/json; charset=UTF-8",

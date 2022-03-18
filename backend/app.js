@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const express = require("express");
+
 const expressGraphQL = require("express-graphql").graphqlHTTP;
 const {
     GraphQLSchema,
@@ -11,6 +12,7 @@ const {
 const dotenv = require("dotenv");
 dotenv.config();
 const app = express();
+const cors = require('cors');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -22,6 +24,12 @@ const saltRounds = 10;
 const cookie = require("cookie");
 
 const session = require("express-session");
+
+app.use(function (req, res, next){
+    console.log("HTTP request", req.method, req.url, req.body);
+    next();
+});
+
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
@@ -51,7 +59,6 @@ const Campfire = require("./models/CampfireModel");
 const {CampfireType, CampfireInputType} = require("./GraphqlTypes/CampfireType")
 
 const isAuthenticated = (context) => {
-    console.log("COMPARING: ", context.session.username)
     if (!context.session.username) throw new Error("Not Authenticated");
 }
 
@@ -290,6 +297,8 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
+
+app.use(cors());
 app.use(
     "/graphql",
     (req, res, next) => {
@@ -307,9 +316,13 @@ app.use(
 const http = require("http");
 const { resolve } = require("path");
 const {hash} = require("bcrypt");
-const PORT = 3000;
+const PORT = 4000;
 
 http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
     else console.log("HTTP server on http://localhost:%s", PORT);
 });
+
+app.listen(80, function () {
+    console.log('CORS-enabled web server listening on port 80')
+})
