@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Canvas } from "react-three-fiber";
 import CameraControls from "./3d/CameraControls";
 import Skybox from "./3d/Skybox";
@@ -24,6 +25,7 @@ const Register = function (props: PropsType) {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const navigate = useNavigate();
 
     const registerHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -45,14 +47,22 @@ const Register = function (props: PropsType) {
                         password,
                     },
                 }),
-            }).then((res) => {
-                // TODO: Parse the graphql response? VALID DATA RESPONSE: {"data":{"signUp":{"_id":"6234197b87ebcfe1dae1e816", "username":"test1"}}}
-                if (res) {
-                    // TODO: Route to some other screen?
-                } else {
-                    setErrorMessage("Invalid username or password!");
-                }
-            });
+            })
+                .then((res) => {
+                    if (res) {
+                        return res.json();
+                    } else {
+                        console.log("Invalid");
+                        setErrorMessage("Invalid username or password!");
+                    }
+                })
+                .then((json) => {
+                    if (!json.errors) {
+                        navigate("/");
+                    } else {
+                        setErrorMessage(json.errors[0].message);
+                    }
+                });
         } catch (e) {
             console.error(e);
             setErrorMessage(String(e));
