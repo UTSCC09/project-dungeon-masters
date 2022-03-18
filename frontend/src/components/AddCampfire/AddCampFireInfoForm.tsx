@@ -30,7 +30,7 @@ export function AddCampFireInfoForm(props: InfoProp) {
     };
 
     return(
-        <div className="p-4 m-auto max-w-xl bg-white dark:bg-gray-700 rounded-xl shadow-lg grid">
+        <div className="p-4 m-auto my-20 max-w-xl bg-white dark:bg-gray-700 rounded-xl shadow-lg grid">
         <label className='p-4 w-full text-black dark:text-white shrink-0'>
             Name
             <input type="text" className='m-4 text-black bg-gray-200 w-5/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none' 

@@ -71,7 +71,7 @@ export function AddCampFireForm() {
     // }
 
     return(
-        <div className='dark pb-5 min-h-screen bg-gradient-to-t to-white dark:to-zinc-900 via-stone-600 from-amber-200 grid'>
+        <div className='dark min-h-screen grid bg-gradient-to-t to-white dark:to-zinc-900 via-stone-600 from-amber-200'>
             <div className="top-0 w-full h-20 bg-amber-700 grid grid-cols-3 place-content-center">
                 { page === 0 ?
                     <div className="h-18 m-1 ml-5 btn rounded-md bg-amber-200 text-red-800 p-2 justify-self-start">Cancel</div>
@@ -85,7 +85,7 @@ export function AddCampFireForm() {
                     <div className="h-18 w-14 m-1 mr-5 btn btn_next justify-self-end" onClick={nextPage}/>
                 }
             </div>
-            <form className='place-self-center w-full'>
+            <form className='w-full h-full place-self-center'>
                 { page === 0 &&
                      <AddCampFireInfoForm setCampfire={setCampfire} campfire={campfire}/>
                 }{

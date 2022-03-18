@@ -12,5 +12,5 @@ export const ScenePhoto = forwardRef(({url, faded, style, ...props}, ref) => {
       ...style,
     };
   
-    return <div className="h-52" ref={ref} style={inlineStyles} {...props} />;
+    return <div className="h-52 w-full" ref={ref} style={inlineStyles} {...props} />;
   });
