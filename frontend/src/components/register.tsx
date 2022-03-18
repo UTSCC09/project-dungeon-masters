@@ -14,9 +14,12 @@ const Register = function (props: PropsType) {
 
     const pwdConfirmRef = useRef(null);
     const registerQuery = `
-        query {
-            // TODO: Write the graphql query
-        }`;
+    mutation signUp($username: String, $password: String) {
+        signUp(username: $username, password: $password) {
+            _id
+            username
+        }
+    }`;
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,12 +32,12 @@ const Register = function (props: PropsType) {
             return;
         }
         try {
-            let result: any;
-            result = await fetch("http://localhost:5000/graphql/", {
+            fetch("http://localhost:4000/graphql/", {
                 method: "POST",
                 headers: {
                     "content-type": "application/json; charset=UTF-8",
                 },
+                credentials: "include",
                 body: JSON.stringify({
                     query: registerQuery,
                     variables: {
@@ -42,13 +45,14 @@ const Register = function (props: PropsType) {
                         password,
                     },
                 }),
+            }).then((res) => {
+                // TODO: Parse the graphql response? VALID DATA RESPONSE: {"data":{"signUp":{"_id":"6234197b87ebcfe1dae1e816", "username":"test1"}}}
+                if (res) {
+                    // TODO: Route to some other screen?
+                } else {
+                    setErrorMessage("Invalid username or password!");
+                }
             });
-            // TODO: Parse the graphql response?
-            if (result.data) {
-                // TODO: Route to some other screen?
-            } else {
-                setErrorMessage("Invalid username or password!");
-            }
         } catch (e) {
             console.error(e);
             setErrorMessage(String(e));

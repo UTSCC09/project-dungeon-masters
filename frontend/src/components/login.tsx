@@ -10,9 +10,12 @@ const Login = function (props: PropsType) {
     const { setShowLogin } = props;
 
     const loginQuery = `
-        query {
-            // TODO: Write the graphql query
-        }`;
+    mutation signIn($username: String, $password: String) {
+        signIn(username: $username, password: $password) {
+            _id
+            username
+        }
+    }`;
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState<string>("");
@@ -21,11 +24,12 @@ const Login = function (props: PropsType) {
         e.preventDefault();
         try {
             let result: any;
-            result = await fetch("http://localhost:5000/graphql/", {
+            fetch("http://localhost:4000/graphql/", {
                 method: "POST",
                 headers: {
                     "content-type": "application/json; charset=UTF-8",
                 },
+                credentials: "include",
                 body: JSON.stringify({
                     query: loginQuery,
                     variables: {
@@ -33,13 +37,14 @@ const Login = function (props: PropsType) {
                         password,
                     },
                 }),
-            });
-            // TODO: Parse the graphql response?
-            if (result.data) {
-                // TODO: Route to some other screen?
-            } else {
-                setErrorMessage("Invalid username or password!");
-            }
+            }).then(res => {
+                // TODO: Parse the graphql response? VALID RESPONSE: {"data":{"signIn":{"_id":"62341d1587ebcfe1dae1e838","username":"test1"}}}
+                if (res) {
+                    // TODO: Route to some other screen?
+                } else {
+                    setErrorMessage("Invalid username or password!");
+                }
+            })
         } catch (e) {
             console.error(e);
             setErrorMessage(String(e));

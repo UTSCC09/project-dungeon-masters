@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const fs = require("fs");
 const express = require("express");
+
 const expressGraphQL = require("express-graphql").graphqlHTTP;
 const {
     GraphQLSchema,
@@ -11,6 +12,7 @@ const {
 const dotenv = require("dotenv");
 dotenv.config();
 const app = express();
+const cors = require('cors');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -22,6 +24,12 @@ const saltRounds = 10;
 const cookie = require("cookie");
 
 const session = require("express-session");
+
+app.use(function (req, res, next){
+    console.log("HTTP request", req.method, req.url, req.body);
+    next();
+});
+
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
@@ -51,8 +59,25 @@ const Campfire = require("./models/CampfireModel");
 const {CampfireType, CampfireInputType} = require("./GraphqlTypes/CampfireType")
 
 const isAuthenticated = (context) => {
-    console.log("COMPARING: ", context.session.username)
     if (!context.session.username) throw new Error("Not Authenticated");
+}
+
+const signInUser = (context, user) => {
+    context.session.username = user.username.trim();
+    context.res.setHeader('Set-Cookie', cookie.serialize('username', user._id, {
+        path: '/',
+        maxAge: null,
+        secure: false,
+        sameSite: true
+    }));
+}
+
+const signOutUser = (context) => {
+    context.session.destroy();
+    context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
+        path: '/',
+        maxAge: null
+    }));
 }
 
 const RootQueryType = new GraphQLObjectType({
@@ -100,25 +125,32 @@ const RootMutationType = new GraphQLObjectType({
         signUp: {
             type: UserType,
             args: {
-                userData: { type: UserInputType },
+                username: {type: GraphQLString},
+                password: {type: GraphQLString}
             },
-            resolve: async (source, args) => {
+            resolve: async (source, args, context) => {
                 const hashedPassword = await new Promise((resolve, reject) => {
                     bcrypt.genSalt(saltRounds, (err, salt) => {
-                        bcrypt.hash(args.userData.password.trim(), salt, (err, hash) => {
+                        bcrypt.hash(args.password.trim(), salt, (err, hash) => {
                             if (err) reject(err)
                             resolve(hash)
                         });
                     });
                 })
 
-                return await User.create({
-                    username: args.userData.username,
-                    email: args.userData.email,
+                let user = await User.create({
+                    username: args.username,
                     password: hashedPassword,
-                    profilePicture: args.userData.profilePicture,
-                    socialMedia: args.userData.socialMedia
+                    profilePicture: "",
+                    socialMedia: {
+                        twitter: "",
+                        instagram: ""
+                    }
                 });
+
+                signInUser(context, user);
+
+                return user;
             }
         },
         signIn: {
@@ -135,13 +167,9 @@ const RootMutationType = new GraphQLObjectType({
                 let validPass = await bcrypt.compare(args.password.trim(), user.password);
 
                 if (validPass) {
-                    context.session.username = user.username.trim();
-                    context.res.setHeader('Set-Cookie', cookie.serialize('username', user._id, {
-                        path: '/',
-                        maxAge: null,
-                        secure: false,
-                        sameSite: true
-                    }));
+                    signInUser(context, user);
+                } else {
+                    throw new Error("Invalid Password");
                 }
 
                 return user;
@@ -150,11 +178,7 @@ const RootMutationType = new GraphQLObjectType({
         signOut: {
             type: UserType,
             resolve: async (source, args, context) => {
-                context.session.destroy();
-                context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
-                    path: '/',
-                    maxAge: null
-                }));
+                signOutUser(context)
 
                 return new User;
             }
@@ -167,7 +191,6 @@ const RootMutationType = new GraphQLObjectType({
             resolve: async(source, args, context) => {
                 isAuthenticated(context);
                 return User.findOneAndUpdate({username: context.session.username}, {
-                    email: args.userData.email,
                     password: args.userData.password,
                     profilePicture: args.userData.profilePicture,
                     socialMedia: args.userData.socialMedia
@@ -187,11 +210,7 @@ const RootMutationType = new GraphQLObjectType({
                     await Campfire.deleteMany({ownerUsername: context.session.username});
                     const deletedUser = await User.findOneAndDelete({username: context.session.username});
 
-                    context.session.destroy();
-                    context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
-                        path: '/',
-                        maxAge: null
-                    }));
+                    signOutUser(context)
 
                     return deletedUser;
                 } catch (e) {
@@ -290,6 +309,20 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
+
+var whitelist = ['http://localhost:3000', /** other domains if any */ ]
+var corsOptions = {
+    credentials: true,
+    origin: function(origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    }
+}
+
+app.use(cors(corsOptions));
 app.use(
     "/graphql",
     (req, res, next) => {
@@ -307,7 +340,7 @@ app.use(
 const http = require("http");
 const { resolve } = require("path");
 const {hash} = require("bcrypt");
-const PORT = 3000;
+const PORT = 4000;
 
 http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
