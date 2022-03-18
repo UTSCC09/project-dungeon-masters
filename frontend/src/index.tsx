@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import LRFormWrapper from "./routes/LRFromWrapper";
+import LobbyList from "./components/3d/LobbyList";
 
 ReactDOM.render(
     <React.StrictMode>
