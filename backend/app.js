@@ -62,6 +62,24 @@ const isAuthenticated = (context) => {
     if (!context.session.username) throw new Error("Not Authenticated");
 }
 
+const signInUser = (context, user) => {
+    context.session.username = user.username.trim();
+    context.res.setHeader('Set-Cookie', cookie.serialize('username', user._id, {
+        path: '/',
+        maxAge: null,
+        secure: false,
+        sameSite: true
+    }));
+}
+
+const signOutUser = (context) => {
+    context.session.destroy();
+    context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
+        path: '/',
+        maxAge: null
+    }));
+}
+
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
     description: "Root query",
@@ -107,25 +125,32 @@ const RootMutationType = new GraphQLObjectType({
         signUp: {
             type: UserType,
             args: {
-                userData: { type: UserInputType },
+                username: {type: GraphQLString},
+                password: {type: GraphQLString}
             },
-            resolve: async (source, args) => {
+            resolve: async (source, args, context) => {
                 const hashedPassword = await new Promise((resolve, reject) => {
                     bcrypt.genSalt(saltRounds, (err, salt) => {
-                        bcrypt.hash(args.userData.password.trim(), salt, (err, hash) => {
+                        bcrypt.hash(args.password.trim(), salt, (err, hash) => {
                             if (err) reject(err)
                             resolve(hash)
                         });
                     });
                 })
 
-                return await User.create({
-                    username: args.userData.username,
-                    email: args.userData.email,
+                let user = await User.create({
+                    username: args.username,
                     password: hashedPassword,
-                    profilePicture: args.userData.profilePicture,
-                    socialMedia: args.userData.socialMedia
+                    profilePicture: "",
+                    socialMedia: {
+                        twitter: "",
+                        instagram: ""
+                    }
                 });
+
+                signInUser(context, user);
+
+                return user;
             }
         },
         signIn: {
@@ -142,13 +167,9 @@ const RootMutationType = new GraphQLObjectType({
                 let validPass = await bcrypt.compare(args.password.trim(), user.password);
 
                 if (validPass) {
-                    context.session.username = user.username.trim();
-                    context.res.setHeader('Set-Cookie', cookie.serialize('username', user._id, {
-                        path: '/',
-                        maxAge: null,
-                        secure: false,
-                        sameSite: true
-                    }));
+                    signInUser(context, user);
+                } else {
+                    throw new Error("Invalid Password");
                 }
 
                 return user;
@@ -157,11 +178,7 @@ const RootMutationType = new GraphQLObjectType({
         signOut: {
             type: UserType,
             resolve: async (source, args, context) => {
-                context.session.destroy();
-                context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
-                    path: '/',
-                    maxAge: null
-                }));
+                signOutUser(context)
 
                 return new User;
             }
@@ -174,7 +191,6 @@ const RootMutationType = new GraphQLObjectType({
             resolve: async(source, args, context) => {
                 isAuthenticated(context);
                 return User.findOneAndUpdate({username: context.session.username}, {
-                    email: args.userData.email,
                     password: args.userData.password,
                     profilePicture: args.userData.profilePicture,
                     socialMedia: args.userData.socialMedia
@@ -194,11 +210,7 @@ const RootMutationType = new GraphQLObjectType({
                     await Campfire.deleteMany({ownerUsername: context.session.username});
                     const deletedUser = await User.findOneAndDelete({username: context.session.username});
 
-                    context.session.destroy();
-                    context.res.setHeader('Set-Cookie', cookie.serialize('username', '', {
-                        path: '/',
-                        maxAge: null
-                    }));
+                    signOutUser(context)
 
                     return deletedUser;
                 } catch (e) {
@@ -298,7 +310,19 @@ const schema = new GraphQLSchema({
 });
 
 
-app.use(cors());
+var whitelist = ['http://localhost:3000', /** other domains if any */ ]
+var corsOptions = {
+    credentials: true,
+    origin: function(origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('Not allowed by CORS'))
+        }
+    }
+}
+
+app.use(cors(corsOptions));
 app.use(
     "/graphql",
     (req, res, next) => {
@@ -322,7 +346,3 @@ http.createServer(app).listen(PORT, function (err) {
     if (err) console.log(err);
     else console.log("HTTP server on http://localhost:%s", PORT);
 });
-
-app.listen(80, function () {
-    console.log('CORS-enabled web server listening on port 80')
-})
