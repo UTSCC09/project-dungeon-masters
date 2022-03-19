@@ -5,26 +5,28 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import LRFormWrapper from "./routes/LRFromWrapper";
-import LobbyList from "./components/3d/LobbyList";
 import { AddCampFireForm } from "./components/AddCampfire/AddCampFireForm";
+import { CookiesProvider } from "react-cookie";
 
 ReactDOM.render(
     <React.StrictMode>
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<App />}></Route>
-                <Route path="login" element={<LRFormWrapper />} />
-                <Route path="addCampfire" element={ <AddCampFireForm/>}/>
-                <Route
-                    path="*"
-                    element={
-                        <main style={{ padding: "1rem" }}>
-                            <p>There's nothing here!</p>
-                        </main>
-                    }
-                />
-            </Routes>
-        </BrowserRouter>
+        <CookiesProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<App />}></Route>
+                    <Route path="login" element={<LRFormWrapper />} />
+                    <Route path="addCampfire" element={<AddCampFireForm />} />
+                    <Route
+                        path="*"
+                        element={
+                            <main style={{ padding: "1rem" }}>
+                                <p>There's nothing here!</p>
+                            </main>
+                        }
+                    />
+                </Routes>
+            </BrowserRouter>
+        </CookiesProvider>
     </React.StrictMode>,
     document.getElementById("root")
 );

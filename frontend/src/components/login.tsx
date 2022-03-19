@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import StyledLink from "./StyledLink";
 
 interface PropsType {
@@ -19,6 +20,7 @@ const Login = function (props: PropsType) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState<string>("");
+    const navigate = useNavigate();
 
     const signinHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -37,14 +39,23 @@ const Login = function (props: PropsType) {
                         password,
                     },
                 }),
-            }).then(res => {
-                // TODO: Parse the graphql response? VALID RESPONSE: {"data":{"signIn":{"_id":"62341d1587ebcfe1dae1e838","username":"test1"}}}
-                if (res) {
-                    // TODO: Route to some other screen?
-                } else {
-                    setErrorMessage("Invalid username or password!");
-                }
             })
+                .then((res) => {
+                    if (res) {
+                        console.log(res);
+                        return res.json();
+                    } else {
+                        setErrorMessage("Invalid username or password!");
+                    }
+                })
+                .then((json) => {
+                    console.log(json);
+                    if (!json.errors) {
+                        navigate("/");
+                    } else {
+                        setErrorMessage(json.errors[0].message);
+                    }
+                });
         } catch (e) {
             console.error(e);
             setErrorMessage(String(e));
@@ -76,12 +87,14 @@ const Login = function (props: PropsType) {
                         type="text"
                         placeholder="Username"
                         onChange={(e) => setUsername(e.target.value)}
+                        required
                     ></input>
                     <input
                         className="rounded h-6 w-52 px-2 mb-6"
                         type="password"
                         placeholder="Password"
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     ></input>
                     <button
                         className="bg-warm text-white py-3 rounded-lg mb-4"

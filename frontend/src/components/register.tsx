@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Canvas } from "react-three-fiber";
 import CameraControls from "./3d/CameraControls";
 import Skybox from "./3d/Skybox";
@@ -24,12 +25,23 @@ const Register = function (props: PropsType) {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const navigate = useNavigate();
 
     const registerHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (password !== confirmPassword) {
             setErrorMessage("Passwords does not match!");
             return;
+        }
+        if (process.env.NODE_ENV && process.env.NODE_ENV !== "development") {
+            if (username.length < 5) {
+                setErrorMessage("Username must be at least 5 characters long.");
+                return;
+            }
+            if (password.length < 6) {
+                setErrorMessage("Password must be at least 6 characters long.");
+                return;
+            }
         }
         try {
             fetch("http://localhost:4000/graphql/", {
@@ -45,14 +57,22 @@ const Register = function (props: PropsType) {
                         password,
                     },
                 }),
-            }).then((res) => {
-                // TODO: Parse the graphql response? VALID DATA RESPONSE: {"data":{"signUp":{"_id":"6234197b87ebcfe1dae1e816", "username":"test1"}}}
-                if (res) {
-                    // TODO: Route to some other screen?
-                } else {
-                    setErrorMessage("Invalid username or password!");
-                }
-            });
+            })
+                .then((res) => {
+                    if (res) {
+                        return res.json();
+                    } else {
+                        console.log("Invalid");
+                        setErrorMessage("Invalid username or password!");
+                    }
+                })
+                .then((json) => {
+                    if (!json.errors) {
+                        navigate("/");
+                    } else {
+                        setErrorMessage(json.errors[0].message);
+                    }
+                });
         } catch (e) {
             console.error(e);
             setErrorMessage(String(e));
@@ -84,12 +104,14 @@ const Register = function (props: PropsType) {
                         type="text"
                         placeholder="Username"
                         onChange={(e) => setUsername(e.target.value)}
+                        required
                     ></input>
                     <input
                         className="rounded h-6 w-52 px-2 mb-6 bg-light-grey"
                         type="password"
                         placeholder="Password"
                         onChange={(e) => setPassword(e.target.value)}
+                        required
                     ></input>
                     <input
                         ref={pwdConfirmRef}
@@ -97,6 +119,7 @@ const Register = function (props: PropsType) {
                         type="password"
                         placeholder="Confirm password"
                         onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
                     ></input>
                     <button
                         className="bg-warm text-white py-3 rounded-lg mb-4"
