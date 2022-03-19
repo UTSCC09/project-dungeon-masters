@@ -7,6 +7,7 @@ import reportWebVitals from "./reportWebVitals";
 import LRFormWrapper from "./routes/LRFromWrapper";
 import { AddCampFireForm } from "./components/AddCampfire/AddCampFireForm";
 import { CookiesProvider } from "react-cookie";
+import Profile from "./routes/Profile";
 
 ReactDOM.render(
     <React.StrictMode>
@@ -14,8 +15,9 @@ ReactDOM.render(
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<App />}></Route>
-                    <Route path="login" element={<LRFormWrapper />} />
-                    <Route path="addCampfire" element={<AddCampFireForm />} />
+                    <Route path="/login" element={<LRFormWrapper />} />
+                    <Route path="/addCampfire" element={<AddCampFireForm />} />
+                    <Route path="/profile" element={<Profile />} />
                     <Route
                         path="*"
                         element={

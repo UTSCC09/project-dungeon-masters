@@ -37,7 +37,7 @@ function App() {
             <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
                 <div className="pl-4 text-white">
                     {isLoggedin ? (
-                        `Welcome back, ${cookies.username}`
+                        <Link to="/profile">{`Welcome back, ${cookies.username}`}</Link>
                     ) : (
                         <Link to="/login">Login</Link>
                     )}
