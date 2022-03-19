@@ -29,7 +29,17 @@ export default function Profile(props: PropsType) {
             },
             credentials: "include",
             body: JSON.stringify({
-                query: ``, // TODO
+                query: `
+                    query QueryUsers {
+                      users {
+                        description
+                        socialMedia {
+                          twitter,
+                          instagram
+                        }
+                      }
+                    }
+                `,
                 variables: {},
             }),
         })
@@ -43,6 +53,19 @@ export default function Profile(props: PropsType) {
             .then((json) => {
                 if (!json.errors) {
                     // TODO: Need return type
+                    //{
+                    //   "data": {
+                    //     "users": [
+                    //       {
+                    //         "description": "",
+                    //         "socialMedia": {
+                    //           "twitter": "",
+                    //           "instagram": ""
+                    //         }
+                    //       }
+                    //     ]
+                    //   }
+                    // }
                     // setLinks(json.data. ???);
                     // setDescription(json.data. ???);
                     // setLobbies(json.data. ???);
@@ -56,7 +79,44 @@ export default function Profile(props: PropsType) {
     }
 
     function updateUserInfo(socialLinks: string[], description: string) {
-        // TODO: Update user profile in the database
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: `
+                    mutation ModifyUser($userData: UserInputObject){
+                      modifyUser(userData: $userData) {
+                        description
+                        socialMedia {
+                          twitter,
+                          instagram
+                        }
+                      }
+                    }
+                `,
+                variables: {
+                    userData: {
+                        description: description,
+                        socialLinks: socialLinks
+                    }
+                },
+            }),
+        }) //TODO: Handle response
+        //Returns
+        // {
+        //     "data": {
+        //     "modifyUser": {
+        //         "description": "bob",
+        //             "socialMedia": {
+        //             "twitter": "4",
+        //                 "instagram": null
+        //         }
+        //     }
+        //   }
+        // }
     }
 
     useEffect(() => {

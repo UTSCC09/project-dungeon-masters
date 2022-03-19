@@ -96,21 +96,12 @@ const RootQueryType = new GraphQLObjectType({
     fields: () => ({
         users: {
             type: new GraphQLList(UserType),
-            args: {
-                usernames: { type: new GraphQLList(GraphQLString) },
-            },
             resolve: async (source, args, context) => {
                 console.log(context);
                 isAuthenticated(context);
-                if (
-                    args.usernames === undefined ||
-                    args.usernames.length === 0
-                ) {
-                    return User.find();
-                }
                 return User.find({
                     username: {
-                        $in: args.usernames.trim(),
+                        $in: context.session.username
                     },
                 });
             },
@@ -157,6 +148,7 @@ const RootMutationType = new GraphQLObjectType({
                     username: args.username,
                     password: hashedPassword,
                     profilePicture: "",
+                    description: "",
                     socialMedia: {
                         twitter: "",
                         instagram: "",
@@ -215,6 +207,7 @@ const RootMutationType = new GraphQLObjectType({
                     {
                         password: args.userData.password,
                         profilePicture: args.userData.profilePicture,
+                        description: args.userData.description,
                         socialMedia: args.userData.socialMedia,
                     },
                     { new: true }
@@ -355,7 +348,7 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
-var whitelist = ["http://localhost:3000" /** other domains if any */];
+var whitelist = ["http://localhost:3000", "http://localhost:4000" /** other domains if any */];
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {

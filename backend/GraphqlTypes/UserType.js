@@ -14,6 +14,9 @@ const UserType = new GraphQLObjectType({
         profilePicture: {
             type: GraphQLString
         },
+        description: {
+            type: GraphQLString
+        },
         socialMedia: {
             type: new GraphQLObjectType({
                 name: "socialMedia",
@@ -36,6 +39,9 @@ const UserInputType = new GraphQLInputObjectType({
             type: GraphQLString
         },
         profilePicture: {
+            type: GraphQLString
+        },
+        description: {
             type: GraphQLString
         },
         socialMedia: {
