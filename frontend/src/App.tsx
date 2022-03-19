@@ -20,7 +20,13 @@ function App() {
             },
             credentials: "include",
             body: JSON.stringify({
-                query: ``, // TODO: Query string for signout
+                query: `
+                    mutation SignOut {
+                        signOut {
+                            username
+                        }
+                    }
+                `,
             }),
         });
         removeCookie("username");
