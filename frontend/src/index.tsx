@@ -17,7 +17,7 @@ ReactDOM.render(
                     <Route path="/" element={<App />}></Route>
                     <Route path="/login" element={<LRFormWrapper />} />
                     <Route path="/addCampfire" element={<AddCampFireForm />} />
-                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/profile" element={<Profile />}></Route>
                     <Route
                         path="*"
                         element={

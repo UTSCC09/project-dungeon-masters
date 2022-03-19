@@ -15,6 +15,12 @@ export default function Credits() {
             >
                 Edit icons created by Kiranshastry - Flaticon
             </a>
+            <a
+                href="https://www.flaticon.com/free-icons/return"
+                title="return icons"
+            >
+                Return icons created by Kiranshastry - Flaticon
+            </a>
         </>
     );
 }
