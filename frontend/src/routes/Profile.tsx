@@ -100,7 +100,10 @@ export default function Profile(props: PropsType) {
                 variables: {
                     userData: {
                         description: description,
-                        socialLinks: socialLinks
+                        socialLinks: {
+                            twitter: socialLinks[0],
+                            instagram: socialLinks[1]
+                        }
                     }
                 },
             }),
