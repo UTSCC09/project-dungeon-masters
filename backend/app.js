@@ -26,10 +26,18 @@ const cookie = require("cookie");
 
 const session = require("express-session");
 
-app.use(function (req, res, next) {
-    console.log("HTTP request", req.method, req.url, req.body);
-    next();
+app.use(bodyParser.urlencoded({ extended: false }));
+const multer = require("multer");
+const storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, 'uploads')
+    },
+    filename: (req,file, callback) => {
+        callback(null, file.fieldname + '-' + Date.now());
+    }
 });
+const upload = multer({ storage: storage});
+
 
 app.use(
     session({
@@ -46,6 +54,12 @@ app.use(
     })
 );
 
+app.use(function (req, res, next) {
+    req.username = (req.session && req.session.username)? req.session.username : null;
+    console.log("HTTP request", req.username, req.method, req.url, req.body);
+    next();
+});
+
 const mongoose = require("mongoose");
 
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true });
@@ -61,6 +75,8 @@ const {
     CampfireType,
     CampfireInputType,
 } = require("./GraphqlTypes/CampfireType");
+
+const Image = require("./models/imageModel");
 
 const isAuthenticated = (context) => {
     if (!context.session.username) throw new Error("Not Authenticated");
@@ -263,6 +279,11 @@ const RootMutationType = new GraphQLObjectType({
                     title: args.campfireData.title,
                     description: args.campfireData.description,
                     status: args.campfireData.status,
+                    private: args.campfireData.private,
+                    passcode: args.campfireData.passcode,
+                    thumbnail: args.campfireData.thumbnail,
+                    soundtrack: args.campfireData.soundtrack,
+                    scenes: args.campfireData.scenes,
                     followers: args.followers,
                 });
             },
@@ -356,10 +377,12 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
+
 var whitelist = [
     "http://localhost:3000",
     "http://localhost:4000" /** other domains if any */,
 ];
+
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {
@@ -388,9 +411,56 @@ app.use("/graphql", (req, res, next) => {
     })(req, res, next);
 });
 
+app.post('/api/images/', upload.single('picture'), function (req, res, next) {
+    var obj = {
+        img: {
+            data: fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)),
+            contentType: req.file.mimetype,
+            path: req.file.path
+        },
+        url:""
+    }
+    Image.create(obj, (err, image) => {
+        if (err) {
+            return res.status(500).end(err);
+        }
+        else {
+            Image.findOneAndUpdate(
+                {
+                    _id: image._id,
+                },
+                {
+                    url: "/api/images/picture/" + image._id
+                },
+                { new: true }
+            , (err, newImage) => {
+                if (err) {
+                    return res.status(500).end(err);
+                }
+                res.json({url: "/api/images/picture/" + image._id });
+            });
+        }
+    });
+});
+
+app.get('/api/images/picture/:id', function (req, res, next) {
+    Image.findOne({_id: req.params.id},function(err, image){
+        if(err){
+            return res.status(500).end(err);
+        }
+        if(!image){
+            return res.status(404).end("Image with id:" + req.params.id + " does not exist.");
+        }else{
+            res.setHeader("Content-Type", image.img.contentType);
+            res.sendFile(join(__dirname + "/" + image.img.path));
+        }
+    });
+});
+
 const http = require("http");
-const { resolve } = require("path");
+const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
+const { aggregate } = require("./models/userModel");
 const PORT = 4000;
 
 http.createServer(app).listen(PORT, function (err) {

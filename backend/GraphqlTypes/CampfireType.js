@@ -1,4 +1,4 @@
-const {GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLList} = require("graphql");
+const {GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLList, GraphQLBoolean} = require("graphql");
 const {default: mongoose} = require("mongoose");
 
 const CampfireType = new GraphQLObjectType({
@@ -18,6 +18,15 @@ const CampfireType = new GraphQLObjectType({
             type: GraphQLString
         },
         status: {
+            type: GraphQLString
+        },
+        private: {
+            type: GraphQLBoolean
+        },
+        passcode: {
+            type: GraphQLString
+        },
+        thumbnail: {
             type: GraphQLString
         },
         soundtrack: {
@@ -44,13 +53,19 @@ const CampfireInputType = new GraphQLInputObjectType({
         status: {
             type: GraphQLString
         },
+        private: {
+            type: GraphQLBoolean
+        },
+        passcode: {
+            type: GraphQLString
+        },
+        thumbnail: {
+            type: GraphQLString
+        },
         soundtrack: {
             type: new GraphQLList(GraphQLString)
         },
         scenes: {
-            type: new GraphQLList(GraphQLString)
-        },
-        followers: {
             type: new GraphQLList(GraphQLString)
         }
     }),

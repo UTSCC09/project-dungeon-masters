@@ -15,6 +15,11 @@ export function AddCampFireInfoForm(props: InfoProp) {
         
     };
 
+    const handleInvitationChange = (e: React.FormEvent<HTMLInputElement>) => {
+        setCampfire({...campfire, invitation: e.currentTarget.checked});
+        
+    };
+
     const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setCampfire({...campfire, [e.currentTarget.name]: e.currentTarget.value}); 
     };
@@ -35,8 +40,8 @@ export function AddCampFireInfoForm(props: InfoProp) {
             Name
             <input type="text" className='m-4 text-black bg-gray-200 w-5/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none' 
                 placeholder="Name your camp fire" 
-                name='name' 
-                value={campfire.name} 
+                name='title' 
+                value={campfire.title} 
                 onChange={handleChange} required/>
         </label>
         <label className='p-4 w-full text-black dark:text-white shrink-0'>
@@ -52,16 +57,18 @@ export function AddCampFireInfoForm(props: InfoProp) {
             <input type="checkbox" className="m-4 text-black bg-gray-200 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
                 name='invitation'
                 checked={campfire.invitation}
-                onChange={handleChange}/>
+                onChange={handleInvitationChange}/>
         </label>
-        <label className='p-4 w-full text-black dark:text-white shrink-0'>
+        { campfire.invitation &&
+            <label className='p-4 w-full text-black dark:text-white shrink-0'>
             Passcode
             <input type="text" className="m-4 text-black bg-gray-200 w-5/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
                 name='password'
                 value={campfire.password}
                 placeholder="Enter a passcode"
                 onChange={handleChange}/>
-        </label>
+            </label>
+        }
         { !campfire.thumbnail ?
                 <label className='p-4 w-full text-black dark:text-white shrink-0'>
                 Thumbnail
