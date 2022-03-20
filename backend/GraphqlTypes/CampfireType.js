@@ -67,9 +67,6 @@ const CampfireInputType = new GraphQLInputObjectType({
         },
         scenes: {
             type: new GraphQLList(GraphQLString)
-        },
-        followers: {
-            type: new GraphQLList(GraphQLString)
         }
     }),
 })

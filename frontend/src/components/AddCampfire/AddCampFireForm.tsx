@@ -81,12 +81,12 @@ export function AddCampFireForm() {
     }
 
     const submitQuery = 
-    `mutation AddCampfire($campfireInput: CampfireInputObject!, $followers: [String]){
+    `mutation AddCampfire($campfireInput: CampfireInputObject, $followers: [String]){
         addCampfire(campfireData: $campfireInput, followers: $followers) {
           title
          _id
         }
-      }}`;
+      }`;
 
     const uploadThumbnail = async() => {
         if(campfire.thumbnail) {
@@ -121,7 +121,7 @@ export function AddCampFireForm() {
                 body: JSON.stringify({
                     query: submitQuery,
                     variables: {
-                        campfireData: campfireData,
+                        campfireInput: campfireData,
                         followers: []
                     },
                 }),

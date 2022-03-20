@@ -39,12 +39,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage});
 
 
-app.use(function (req, res, next) {
-    req.username = (req.session && req.session.username)? req.session.username : null;
-    console.log("HTTP request", req.username, req.method, req.url, req.body);
-    next();
-});
-
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
@@ -59,6 +53,12 @@ app.use(
         },
     })
 );
+
+app.use(function (req, res, next) {
+    req.username = (req.session && req.session.username)? req.session.username : null;
+    console.log("HTTP request", req.username, req.method, req.url, req.body);
+    next();
+});
 
 const mongoose = require("mongoose");
 
@@ -405,8 +405,8 @@ app.use("/graphql", (req, res, next) => {
     })(req, res, next);
 });
 
-const RESTisAuthenticated = (req, res, next) => {
-    // if (!req.username) return res.status(401).end("Access Denied");
+var RESTisAuthenticated = (req, res, next) => {
+    if (!req.session.username) return res.status(401).end("Access Denied");
     return;
 };
 
