@@ -15,6 +15,15 @@ const campfireSchema = new mongoose.Schema({
     status: {
         type: String
     },
+    private: {
+        type: Boolean
+    },
+    passcode: {
+        type: String
+    },
+    thumbnail: {
+        type: String
+    },
     soundtrack: [ { type: String } ],
     scenes: [ { type: String } ],
     followers: [ { type: String } ]

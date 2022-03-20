@@ -23,7 +23,7 @@ import {api} from "../api";
 
 
 export function AddCampFireSceneForm(props) {
-  let { setPhotos, photos} = props;
+  let { setPhotos, photos, setErrorMessage} = props;
   const [activeId, setActiveId] = useState(null);
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
   const [visible, setVisible] = useState(false);
@@ -58,12 +58,11 @@ export function AddCampFireSceneForm(props) {
 
   const handleAddImage = (e) => {
     if( e.currentTarget.files !== null){
-      console.log(e.currentTarget.files[0]);
-      api.addImage(e.currentTarget.files[0], function(err, res){
-        if(err) return console.error(err);
-        console.log(photos);
+      api.addImage(e.currentTarget.files[0]).then(res => {
         setPhotos([...photos, "http://localhost:4000" + res.url]);
-      });
+        }).catch((error)=>{
+          setErrorMessage(error);
+        });
     }
 };
 

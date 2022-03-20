@@ -66,8 +66,9 @@ function App() {
                             Log out
                         </a>
                     ) : null}
-                    {/* TODO: Add a link to the lobby creation page */}
+                    {isLoggedin &&
                     <Link to="/addCampfire">Lit Camp Fire</Link>
+                    }
                 </div>
             </nav>
             {/* TODO: Provide load functions */}

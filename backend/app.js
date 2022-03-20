@@ -33,14 +33,15 @@ const storage = multer.diskStorage({
         callback(null, 'uploads')
     },
     filename: (req,file, callback) => {
-        callback(null, file.fieldname + '-' + Date.now())
+        callback(null, file.fieldname + '-' + Date.now());
     }
 });
 const upload = multer({ storage: storage});
 
 
 app.use(function (req, res, next) {
-    console.log("HTTP request", req.method, req.url, req.body);
+    req.username = (req.session && req.session.username)? req.session.username : null;
+    console.log("HTTP request", req.username, req.method, req.url, req.body);
     next();
 });
 
@@ -277,6 +278,11 @@ const RootMutationType = new GraphQLObjectType({
                     title: args.campfireData.title,
                     description: args.campfireData.description,
                     status: args.campfireData.status,
+                    private: args.campfireData.private,
+                    passcode: args.campfireData.passcode,
+                    thumbnail: args.campfireData.thumbnail,
+                    soundtrack: args.campfireData.soundtrack,
+                    scenes: args.campfireData.scenes,
                     followers: args.followers,
                 });
             },
@@ -370,7 +376,7 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
-var whitelist = ["http://localhost:3000" /** other domains if any */];
+var whitelist = ["http://localhost:3000", "http://localhost:4000" /** other domains if any */];
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {
@@ -400,16 +406,17 @@ app.use("/graphql", (req, res, next) => {
 });
 
 const RESTisAuthenticated = (req, res, next) => {
-    console.log(req.session);
-    if (!req.session.username) return res.status(401).end("Access Denied");
+    // if (!req.username) return res.status(401).end("Access Denied");
+    return;
 };
 
-app.post('/api/images/', isAuthenticated, upload.single('picture'), function (req, res, next) {
+app.post('/api/images/', upload.single('picture'), function (req, res, next) {
     var obj = {
-        ownerUsername: req.session.username,
+        ownerUsername: "req.username",
         img: {
-            data: fs.readFileSync(path.join(__dirname + '/uploads/' + req.file.filename)),
-            contentType: req.file.mimetype
+            data: fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)),
+            contentType: req.file.mimetype,
+            path: req.file.path
         },
         url:""
     }
@@ -421,19 +428,23 @@ app.post('/api/images/', isAuthenticated, upload.single('picture'), function (re
             Image.findOneAndUpdate(
                 {
                     _id: image._id,
-                    ownerUsername: req.session.username,
+                    ownerUsername: "req.username",
                 },
                 {
                     url: "/api/images/picture/" + image._id
                 },
                 { new: true }
-            );
-            res.json({url: "/api/images/picture/" + image._id });
+            , (err, newImage) => {
+                if (err) {
+                    return res.status(500).end(err);
+                }
+                res.json({url: "/api/images/picture/" + image._id });
+            });
         }
     });
 });
 
-app.get('/api/images/picture/:id',isAuthenticated, function (req, res, next) {
+app.get('/api/images/picture/:id', function (req, res, next) {
     Image.findOne({_id: req.params.id},function(err, image){
         if(err){
             return res.status(500).end(err);
@@ -441,17 +452,16 @@ app.get('/api/images/picture/:id',isAuthenticated, function (req, res, next) {
         if(!image){
             return res.status(404).end("Image with id:" + req.params.id + " does not exist.");
         }else{
-            // let picture = image.file;
-            // res.setHeader("Content-Type", picture.mimetype);
-            // res.sendFile(picture.path);
-            res.json(image);
+            res.setHeader("Content-Type", image.img.contentType);
+            res.sendFile(join(__dirname + "/" + image.img.path));
         }
     });
 });
 
 const http = require("http");
-const { resolve } = require("path");
+const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
+const { aggregate } = require("./models/userModel");
 const PORT = 4000;
 
 http.createServer(app).listen(PORT, function (err) {
