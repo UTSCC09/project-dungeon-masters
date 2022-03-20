@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import staticData from "../assets/staticData/lobbies";
@@ -8,7 +8,7 @@ interface PropsType {}
 export default function Profile(props: PropsType) {
     // Dummy data. TODO: fetch from endpoint
     const [cookies] = useCookies(["username"]);
-    let [username, setUsername] = useState(cookies.username || "");
+    let [username] = useState(cookies.username || "");
     let [links, setLinks] = useState(["", ""]);
     let [description, setDescription] = useState("");
     let since = "1970/1/1";
@@ -62,13 +62,74 @@ export default function Profile(props: PropsType) {
                     //     ]
                     //   }
                     // }
-                    console.log(json);
                     setLinks([
                         json.data.users[0].socialMedia.twitter,
                         json.data.users[0].socialMedia.instagram,
                     ]);
                     setDescription(json.data.users[0].description || "");
-                    // setLobbies();
+                } else {
+                    throw new Error(json.errors[0].message);
+                }
+            })
+            .catch((e) => {
+                setErrorMessage(String(e));
+            });
+    }
+
+    function getLobbiesFromAPI() {
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: `
+                  query QueryCampfires($owned: Boolean, $follower: Boolean) {
+                    campfires(owned: $owned, follower: $follower) {
+                      ownerUsername
+                      title
+                      description
+                      status
+                      followers
+                    }
+                  }
+                `,
+                variables: {
+                    owned: true,
+                    follower: false,
+                },
+            }),
+        })
+            .then((res) => {
+                if (res) {
+                    return res.json();
+                } else {
+                    throw new Error("Invalid username or password!");
+                }
+            })
+            .then((json) => {
+                if (!json.errors) {
+                    /*  data: {
+                          campfires: [
+                            {
+                              ownerUsername
+                              title
+                              description
+                              status
+                              followers
+                            }
+                          ]
+                    } */
+                    setLobbies(
+                        json.data.campfires.map((item: any) => {
+                            return {
+                                ownerId: item.ownerUsername,
+                                title: item.title,
+                                description: item.description,
+                            };
+                        })
+                    );
                 } else {
                     throw new Error(json.errors[0].message);
                 }
@@ -124,6 +185,7 @@ export default function Profile(props: PropsType) {
 
     useEffect(() => {
         getUserInfoFromAPI();
+        getLobbiesFromAPI();
     }, []);
 
     return (
@@ -175,7 +237,9 @@ export default function Profile(props: PropsType) {
                 />
             )}
             <p className="ml-6 mt-4 font-bold text-2xl">
-                Recently Joined Camp Fires
+                {lobbies.length === 0
+                    ? "You Do Not Have Any Camp Fire"
+                    : "Your Camp Fires"}
             </p>
             <div className="flex flex-row flex-wrap">
                 {lobbies.map((item, index) => {
@@ -222,7 +286,7 @@ function UserInfoDisplay(props: {
             <h1 className="font-semibold text-lg mb-1">Social Medias</h1>
             <ul className="list-disc italic ml-4">
                 {links.map((item, index) => {
-                    if (item === "") return;
+                    if (item === "") return null;
                     return (
                         <li key={index}>
                             <a href={item} className="underline">
