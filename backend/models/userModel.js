@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const {GraphQLString} = require("graphql");
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -13,6 +14,7 @@ const userSchema = new mongoose.Schema({
         trim: true
     },
     profilePicture: String,
+    description: String,
     socialMedia: {
         twitter: {
             type: String,
