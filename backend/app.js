@@ -405,14 +405,8 @@ app.use("/graphql", (req, res, next) => {
     })(req, res, next);
 });
 
-var RESTisAuthenticated = (req, res, next) => {
-    if (!req.session.username) return res.status(401).end("Access Denied");
-    return;
-};
-
 app.post('/api/images/', upload.single('picture'), function (req, res, next) {
     var obj = {
-        ownerUsername: "req.username",
         img: {
             data: fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)),
             contentType: req.file.mimetype,
@@ -428,7 +422,6 @@ app.post('/api/images/', upload.single('picture'), function (req, res, next) {
             Image.findOneAndUpdate(
                 {
                     _id: image._id,
-                    ownerUsername: "req.username",
                 },
                 {
                     url: "/api/images/picture/" + image._id

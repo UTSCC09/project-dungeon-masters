@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import LobbyList from '../3d/LobbyList';
 import { api } from '../api';
 import { AddCampFireInfoForm } from "./AddCampFireInfoForm";
 import { AddCampFireSceneForm } from "./AddCampFireSceneForm";
@@ -29,6 +30,11 @@ export interface InfoProp {
     campfire: CampFire;
 }
 
+export interface Lobby {
+    id: String;
+    title: String;
+}
+
 export enum CFStatus{
     TALKING = "talking",
     TELLING = "telling",
@@ -53,6 +59,10 @@ export function AddCampFireForm() {
     const [errorMessage, setErrorMessage] = useState<string>("");
     const[page, setPage] = useState<number>(0);
     const[title, setTitle] = useState<string>("");
+    const[lobby, setLobby] = useState<Lobby>({
+        id: "",
+        title: ""
+    })
 
     useEffect(() => {
         switch(page){
@@ -63,6 +73,7 @@ export function AddCampFireForm() {
                 setTitle("Add Scenes for your story");
                 break;
             case 2:
+                setErrorMessage("");
                 uploadThumbnail();
                 setTitle("Your Campfire is ready");
                 break;
@@ -72,7 +83,30 @@ export function AddCampFireForm() {
         // }
     },[page]);
 
+    const validateInfo= () => {
+        let valid = true;
+        let eMessage = `The following required fields are missing: `
+        if(campfire.title.trim() === ""){
+            eMessage += `title`
+            valid = false;
+        }
+        if(campfire.description.trim() === ""){
+            if(!valid) eMessage += ', '
+            eMessage += `description `
+            valid = false;
+        }
+        if(!valid) {
+            setErrorMessage(eMessage);
+        }
+        return valid;
+
+    }
+
     const nextPage = () => {
+        if(page === 1){
+           let valid = validateInfo();
+           if(!valid) return;
+        }
         setPage(page + 1);
     }
 
@@ -125,6 +159,10 @@ export function AddCampFireForm() {
                         followers: []
                     },
                 }),
+            }).then(res => {
+                return res.json();
+            }).then(json => {
+                setLobby({id:json.data.addCampfire._id, title: json.data.addCampfire.title});
             }).catch ((error)=>{
                         setErrorMessage(error);
                     }
@@ -146,7 +184,7 @@ export function AddCampFireForm() {
                     <div className="h-6 w-14 ml-5 pl-8 text-white btn btn_previous " onClick={prevPage}>Back</div>
                     )
                 }
-                <div className="text-lg text-white ">{title}</div>
+                <div className="text-lg text-white m-auto">{title}</div>
                 { page === 0 ?
                     <div className=" h-6 w-14 mr-5 pl-8 text-white btn btn_next" onClick={nextPage}>Next</div>
                 : (page === 1 ?
@@ -166,6 +204,9 @@ export function AddCampFireForm() {
                 }{
                     page === 1 &&
                     <AddCampFireSceneForm setPhotos={setPhotos} photos={photos} setErrorMessage={setErrorMessage}/>
+                }{
+                    page === 2 &&
+                    <div className='text-bright text-center'>{lobby.id}: {lobby.title}</div>
                 }
             </form>
         </div>
