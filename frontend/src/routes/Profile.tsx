@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import staticData from "../assets/staticData/lobbies";
 
@@ -6,14 +7,10 @@ interface PropsType {}
 
 export default function Profile(props: PropsType) {
     // Dummy data. TODO: fetch from endpoint
-    let [username, setUsername] = useState("Aquil");
-    let [links, setLinks] = useState([
-        "https://www.twitter.com/",
-        "https://www.youtu.be.com/",
-    ]);
-    let [description, setDescription] = useState(
-        "Uhhhhh... Lorem ipsum dolor sit, amet consectetur adipisicing elit. Voluptate delectus in nisi asperiores excepturi, repellendus totam porro recusandae magnam reprehenderit dolorum quae nam numquam ducimus. Quod commodi vero ducimus cum!"
-    );
+    const [cookies] = useCookies(["username"]);
+    let [username, setUsername] = useState(cookies.username || "");
+    let [links, setLinks] = useState(["", ""]);
+    let [description, setDescription] = useState("");
     let since = "1970/1/1";
     let [lobbies, setLobbies] = useState(staticData);
 
@@ -52,7 +49,6 @@ export default function Profile(props: PropsType) {
             })
             .then((json) => {
                 if (!json.errors) {
-                    // TODO: Need return type
                     //{
                     //   "data": {
                     //     "users": [
@@ -66,9 +62,13 @@ export default function Profile(props: PropsType) {
                     //     ]
                     //   }
                     // }
-                    // setLinks(json.data. ???);
-                    // setDescription(json.data. ???);
-                    // setLobbies(json.data. ???);
+                    console.log(json);
+                    setLinks([
+                        json.data.users[0].socialMedia.twitter,
+                        json.data.users[0].socialMedia.instagram,
+                    ]);
+                    setDescription(json.data.users[0].description || "");
+                    // setLobbies();
                 } else {
                     throw new Error(json.errors[0].message);
                 }
@@ -102,12 +102,12 @@ export default function Profile(props: PropsType) {
                         description: description,
                         socialLinks: {
                             twitter: socialLinks[0],
-                            instagram: socialLinks[1]
-                        }
-                    }
+                            instagram: socialLinks[1],
+                        },
+                    },
                 },
             }),
-        }) //TODO: Handle response
+        });
         //Returns
         // {
         //     "data": {
@@ -129,15 +129,14 @@ export default function Profile(props: PropsType) {
     return (
         <>
             <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
-                <a
-                    className="bg-red w-6 h-6 ml-4 bg-cover invert"
-                    href="#"
+                <button
+                    className="w-6 h-6 ml-4 bg-cover invert"
                     style={{ backgroundImage: `url(/left-arrow.png)` }}
                     onClick={(e) => {
                         e.preventDefault();
                         navigate("/");
                     }}
-                ></a>
+                ></button>
             </nav>
             {errorMessage === "" ? null : (
                 <div className="bg-red-100 text-center text-lg">
@@ -145,7 +144,7 @@ export default function Profile(props: PropsType) {
                 </div>
             )}
             {!edit ? (
-                <UserInfoHtml
+                <UserInfoDisplay
                     username={username}
                     links={links}
                     description={description}
@@ -156,15 +155,13 @@ export default function Profile(props: PropsType) {
                     }}
                 />
             ) : (
-                <ProfileEdit
+                <UserInfoEdit
                     username={username}
                     links={links}
                     description={description}
                     since={since}
                     onConfirm={(e, socialLinks, description) => {
                         e.preventDefault();
-                        console.log(socialLinks);
-                        console.log(description);
                         // TODO: Update user profile in the database
                         updateUserInfo(socialLinks, description);
                         setEdit(false);
@@ -185,8 +182,7 @@ export default function Profile(props: PropsType) {
                     return (
                         <div key={index} className="w-1/3 px-4 pb-8">
                             <div className="relative h-full bg-white border-gray-800 border-solid border-4 text-gray-800 px-8 pt-4 pb-4 mt-4 rounded-2xl">
-                                <a
-                                    href="#"
+                                <button
                                     onClick={(e) => {
                                         e.preventDefault();
                                         // TODO: Navigate to the correct lobby
@@ -195,7 +191,7 @@ export default function Profile(props: PropsType) {
                                     className="font-bold underline text-center text-3xl mb-4"
                                 >
                                     {item.title}
-                                </a>
+                                </button>
                                 <h1 className="font-semibold text-lg mb-1">
                                     {item.ownerId}
                                 </h1>
@@ -212,12 +208,12 @@ export default function Profile(props: PropsType) {
     );
 }
 
-function UserInfoHtml(props: {
+function UserInfoDisplay(props: {
     username: string;
     links: string[];
     description: string;
     since: string;
-    handler: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+    handler: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }) {
     const { username, links, description, since, handler } = props;
     return (
@@ -225,13 +221,16 @@ function UserInfoHtml(props: {
             <h2 className="font-bold text-3xl mb-4">{username}</h2>
             <h1 className="font-semibold text-lg mb-1">Social Medias</h1>
             <ul className="list-disc italic ml-4">
-                {links.map((item) => (
-                    <li key={item}>
-                        <a href={item} className="underline">
-                            {item}
-                        </a>
-                    </li>
-                ))}
+                {links.map((item, index) => {
+                    if (item === "") return;
+                    return (
+                        <li key={index}>
+                            <a href={item} className="underline">
+                                {item}
+                            </a>
+                        </li>
+                    );
+                })}
             </ul>
             <div className="flex flex-row flex-grow mt-3 mb-8">
                 <div className=" border-solid border-gray-400 border-r-4 mr-2"></div>
@@ -240,19 +239,18 @@ function UserInfoHtml(props: {
             <p className="absolute italic bottom-3 right-6 text-right">
                 Since: {since}
             </p>
-            <a
-                href="#"
+            <button
                 onClick={(e) => {
                     handler(e);
                 }}
                 className="absolute right-4 top-2 bg-cover w-8 h-8 invert"
                 style={{ backgroundImage: `url(/pencil.png)` }}
-            ></a>
+            ></button>
         </div>
     );
 }
 
-function ProfileEdit(props: {
+function UserInfoEdit(props: {
     username: string;
     links: string[];
     description: string;
@@ -262,7 +260,7 @@ function ProfileEdit(props: {
         links: string[],
         description: string
     ) => void;
-    onCancel: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+    onCancel: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 }) {
     const { username, links, description, since, onCancel, onConfirm } = props;
     const [socials, setSocials] = useState([...links]);
@@ -306,14 +304,13 @@ function ProfileEdit(props: {
             <p className="absolute italic bottom-3 right-6 text-right">
                 Since: {since}
             </p>
-            <a
-                href="#"
+            <button
                 onClick={(e) => {
                     onCancel(e);
                 }}
                 className="absolute right-4 top-2 bg-cover w-8 h-8 invert"
                 style={{ backgroundImage: `url(/back.png)` }}
-            ></a>
+            ></button>
         </div>
     );
 }

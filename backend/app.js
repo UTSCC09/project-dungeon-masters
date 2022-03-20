@@ -97,11 +97,10 @@ const RootQueryType = new GraphQLObjectType({
         users: {
             type: new GraphQLList(UserType),
             resolve: async (source, args, context) => {
-                console.log(context);
                 isAuthenticated(context);
                 return User.find({
                     username: {
-                        $in: context.session.username
+                        $in: context.session.username,
                     },
                 });
             },
@@ -115,13 +114,18 @@ const RootQueryType = new GraphQLObjectType({
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
                 let filter = (owned, follower) => {
-                    console.log(owned, follower)
-                    let filter = {$or: []};
-                    if (owned) filter.$or.push({ownerUsername: context.session.username});
-                    if (follower) filter.$or.push({followers: {$in: context.session.username}});
+                    let filter = { $or: [] };
+                    if (owned)
+                        filter.$or.push({
+                            ownerUsername: context.session.username,
+                        });
+                    if (follower)
+                        filter.$or.push({
+                            followers: { $in: context.session.username },
+                        });
                     if (filter.$or.length === 0) filter = {};
                     return filter;
-                }
+                };
                 return Campfire.find(filter(args.owned, args.follower));
             },
         },
@@ -352,7 +356,10 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
-var whitelist = ["http://localhost:3000", "http://localhost:4000" /** other domains if any */];
+var whitelist = [
+    "http://localhost:3000",
+    "http://localhost:4000" /** other domains if any */,
+];
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {
