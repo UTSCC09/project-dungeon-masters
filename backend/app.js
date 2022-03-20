@@ -110,15 +110,19 @@ const RootQueryType = new GraphQLObjectType({
             type: new GraphQLList(CampfireType),
             args: {
                 owned: { type: GraphQLBoolean },
+                follower: { type: GraphQLBoolean },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
-                if (args.owned === undefined || !args.owned) {
-                    return Campfire.find();
+                let filter = (owned, follower) => {
+                    console.log(owned, follower)
+                    let filter = {$or: []};
+                    if (owned) filter.$or.push({ownerUsername: context.session.username});
+                    if (follower) filter.$or.push({followers: {$in: context.session.username}});
+                    if (filter.$or.length === 0) filter = {};
+                    return filter;
                 }
-                return Campfire.find({
-                    ownerUsername: context.session.username,
-                });
+                return Campfire.find(filter(args.owned, args.follower));
             },
         },
     }),
