@@ -41,10 +41,9 @@ export function AddCampFireForm() {
         switch(page){
             case 0:
                 setTitle("Start A Campfire");
-                console.log(campfire);
                 break;
             case 1:
-                setTitle("Add Scenes");
+                setTitle("Add Scenes for your story");
                 break;
             case 2:
                 setTitle("Your Campfire is ready");

@@ -26,6 +26,19 @@ const cookie = require("cookie");
 
 const session = require("express-session");
 
+app.use(bodyParser.urlencoded({ extended: false }));
+const multer = require("multer");
+const storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, 'uploads')
+    },
+    filename: (req,file, callback) => {
+        callback(null, file.fieldname + '-' + Date.now())
+    }
+});
+const upload = multer({ storage: storage});
+
+
 app.use(function (req, res, next) {
     console.log("HTTP request", req.method, req.url, req.body);
     next();
@@ -61,6 +74,8 @@ const {
     CampfireType,
     CampfireInputType,
 } = require("./GraphqlTypes/CampfireType");
+
+const Image = require("./models/imageModel");
 
 const isAuthenticated = (context) => {
     if (!context.session.username) throw new Error("Not Authenticated");
@@ -382,6 +397,56 @@ app.use("/graphql", (req, res, next) => {
         },
         graphiql: true,
     })(req, res, next);
+});
+
+const RESTisAuthenticated = (req, res, next) => {
+    console.log(req.session);
+    if (!req.session.username) return res.status(401).end("Access Denied");
+};
+
+app.post('/api/images/', isAuthenticated, upload.single('picture'), function (req, res, next) {
+    var obj = {
+        ownerUsername: req.session.username,
+        img: {
+            data: fs.readFileSync(path.join(__dirname + '/uploads/' + req.file.filename)),
+            contentType: req.file.mimetype
+        },
+        url:""
+    }
+    Image.create(obj, (err, image) => {
+        if (err) {
+            return res.status(500).end(err);
+        }
+        else {
+            Image.findOneAndUpdate(
+                {
+                    _id: image._id,
+                    ownerUsername: req.session.username,
+                },
+                {
+                    url: "/api/images/picture/" + image._id
+                },
+                { new: true }
+            );
+            res.json({url: "/api/images/picture/" + image._id });
+        }
+    });
+});
+
+app.get('/api/images/picture/:id',isAuthenticated, function (req, res, next) {
+    Image.findOne({_id: req.params.id},function(err, image){
+        if(err){
+            return res.status(500).end(err);
+        }
+        if(!image){
+            return res.status(404).end("Image with id:" + req.params.id + " does not exist.");
+        }else{
+            // let picture = image.file;
+            // res.setHeader("Content-Type", picture.mimetype);
+            // res.sendFile(picture.path);
+            res.json(image);
+        }
+    });
 });
 
 const http = require("http");
