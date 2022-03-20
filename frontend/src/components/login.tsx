@@ -24,42 +24,38 @@ const Login = function (props: PropsType) {
 
     const signinHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        try {
-            let result: any;
-            fetch("http://localhost:4000/graphql/", {
-                method: "POST",
-                headers: {
-                    "content-type": "application/json; charset=UTF-8",
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: loginQuery,
+                variables: {
+                    username,
+                    password,
                 },
-                credentials: "include",
-                body: JSON.stringify({
-                    query: loginQuery,
-                    variables: {
-                        username,
-                        password,
-                    },
-                }),
+            }),
+        })
+            .then((res) => {
+                if (res) {
+                    return res.json();
+                } else {
+                    setErrorMessage("Invalid username or password!");
+                }
             })
-                .then((res) => {
-                    if (res) {
-                        console.log(res);
-                        return res.json();
-                    } else {
-                        setErrorMessage("Invalid username or password!");
-                    }
-                })
-                .then((json) => {
-                    console.log(json);
-                    if (!json.errors) {
-                        navigate("/");
-                    } else {
-                        setErrorMessage(json.errors[0].message);
-                    }
-                });
-        } catch (e) {
-            console.error(e);
-            setErrorMessage(String(e));
-        }
+            .then((json) => {
+                if (!json.errors) {
+                    navigate("/");
+                } else {
+                    setErrorMessage(json.errors[0].message);
+                }
+            })
+            .catch((e) => {
+                console.error(e);
+                setErrorMessage(String(e));
+            });
     };
 
     return (
