@@ -87,11 +87,11 @@ export default function Profile(props: PropsType) {
             credentials: "include",
             body: JSON.stringify({
                 query: `
-                    mutation ModifyUser($userData: UserInputObject){
+                    mutation ModifyUser($userData: UserInputObject) {
                       modifyUser(userData: $userData) {
                         description
                         socialMedia {
-                          twitter,
+                          twitter
                           instagram
                         }
                       }
@@ -100,7 +100,7 @@ export default function Profile(props: PropsType) {
                 variables: {
                     userData: {
                         description: description,
-                        socialLinks: {
+                        socialMedia: {
                             twitter: socialLinks[0],
                             instagram: socialLinks[1],
                         },
