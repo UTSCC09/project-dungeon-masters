@@ -112,21 +112,11 @@ const RootQueryType = new GraphQLObjectType({
     fields: () => ({
         users: {
             type: new GraphQLList(UserType),
-            args: {
-                usernames: { type: new GraphQLList(GraphQLString) },
-            },
             resolve: async (source, args, context) => {
-                console.log(context);
                 isAuthenticated(context);
-                if (
-                    args.usernames === undefined ||
-                    args.usernames.length === 0
-                ) {
-                    return User.find();
-                }
                 return User.find({
                     username: {
-                        $in: args.usernames.trim(),
+                        $in: context.session.username,
                     },
                 });
             },
@@ -135,15 +125,24 @@ const RootQueryType = new GraphQLObjectType({
             type: new GraphQLList(CampfireType),
             args: {
                 owned: { type: GraphQLBoolean },
+                follower: { type: GraphQLBoolean },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
-                if (args.owned === undefined || !args.owned) {
-                    return Campfire.find();
-                }
-                return Campfire.find({
-                    ownerUsername: context.session.username,
-                });
+                let filter = (owned, follower) => {
+                    let filter = { $or: [] };
+                    if (owned)
+                        filter.$or.push({
+                            ownerUsername: context.session.username,
+                        });
+                    if (follower)
+                        filter.$or.push({
+                            followers: { $in: context.session.username },
+                        });
+                    if (filter.$or.length === 0) filter = {};
+                    return filter;
+                };
+                return Campfire.find(filter(args.owned, args.follower));
             },
         },
     }),
@@ -173,6 +172,7 @@ const RootMutationType = new GraphQLObjectType({
                     username: args.username,
                     password: hashedPassword,
                     profilePicture: "",
+                    description: "",
                     socialMedia: {
                         twitter: "",
                         instagram: "",
@@ -231,6 +231,7 @@ const RootMutationType = new GraphQLObjectType({
                     {
                         password: args.userData.password,
                         profilePicture: args.userData.profilePicture,
+                        description: args.userData.description,
                         socialMedia: args.userData.socialMedia,
                     },
                     { new: true }
@@ -376,7 +377,12 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
-var whitelist = ["http://localhost:3000", "http://localhost:4000" /** other domains if any */];
+
+var whitelist = [
+    "http://localhost:3000",
+    "http://localhost:4000" /** other domains if any */,
+];
+
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {

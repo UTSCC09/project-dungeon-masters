@@ -14,11 +14,7 @@ import {
 const cameraDefaultPos = [0.0, 0.2, 2.5];
 const frameSpacing = 2.5;
 
-export default function LobbyList({
-    lobbies,
-    loadNextFunc = () => {},
-    loadPrevFunc = () => {},
-}) {
+export default function LobbyList({ lobbies, loadNextFunc, loadPrevFunc }) {
     return (
         <div className="fixed m-0 p-0 w-full h-full">
             <Canvas
