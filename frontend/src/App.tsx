@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import "./App.css";
 import LobbyList from "./components/3d/LobbyList";
@@ -9,6 +9,7 @@ import { useCookies } from "react-cookie";
 function App() {
     const searchTextRef = useRef("");
     const [cookies, setCookie, removeCookie] = useCookies(["username"]);
+    const [lobbies, setLobbies] = useState(staticData);
     const isLoggedin = cookies.username && cookies.username !== "";
 
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
@@ -31,6 +32,63 @@ function App() {
         });
         removeCookie("username");
     }
+
+    function loadRecentLobbies() {
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: `
+                  query QueryCampfires($owned: Boolean, $follower: Boolean) {
+                    campfires(owned: $owned, follower: $follower) {
+                      ownerUsername
+                      title
+                      description
+                      status
+                      followers
+                    }
+                  }
+                `,
+                variables: {
+                    owned: false,
+                    follower: true,
+                },
+            }),
+        })
+            .then((res) => {
+                if (res) {
+                    return res.json();
+                } else {
+                    throw new Error("Invalid username or password!");
+                }
+            })
+            .then((json) => {
+                if (!json.errors) {
+                    setLobbies(
+                        json.data.campfires.map((item: any) => {
+                            return {
+                                ownerId: item.ownerUsername,
+                                title: item.title,
+                                description: item.description,
+                                // url: item.url
+                            };
+                        })
+                    );
+                } else {
+                    throw new Error(json.errors[0].message);
+                }
+            })
+            .catch((e) => {
+                // setErrorMessage(String(e));
+            });
+    }
+
+    useEffect(() => {
+        // loadRecentLobbies();
+    }, []);
 
     return (
         <div className="App">
@@ -70,11 +128,10 @@ function App() {
                     <Link to="/addCampfire">Lit Camp Fire</Link>
                 </div>
             </nav>
-            {/* TODO: Provide load functions */}
             <LobbyList
-                lobbies={staticData}
-                loadNextFunc={() => {}}
+                lobbies={lobbies}
                 loadPrevFunc={() => {}}
+                loadNextFunc={() => {}}
             />
         </div>
     );
