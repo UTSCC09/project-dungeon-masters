@@ -70,7 +70,7 @@ export function AddCampFireForm() {
                 setTitle("Start A Campfire");
                 break;
             case 1:
-                setTitle("Add Scenes for your story");
+                setTitle("Add Scenes for the Campfire");
                 break;
             case 2:
                 setErrorMessage("");
@@ -93,6 +93,11 @@ export function AddCampFireForm() {
         if(campfire.description.trim() === ""){
             if(!valid) eMessage += ', '
             eMessage += `description `
+            valid = false;
+        }
+        if(campfire.password.trim() === "" && campfire.invitation){
+            if(!valid) eMessage += ', '
+            eMessage += `passcode `
             valid = false;
         }
         if(!valid) {
@@ -124,16 +129,18 @@ export function AddCampFireForm() {
 
     const uploadThumbnail = async() => {
         if(campfire.thumbnail) {
+            console.log("submit with thumbnail");
             await api.addImage(campfire.thumbnail).then(handleSubmit);
         }else{
             handleSubmit(null);
         }
     }
 
-    const handleSubmit = (res:any) => {
-        if(res){
-            setCampfire({...campfire, thumbnailUrl: "http://localhost:4000" + res.url});
-        }
+    const handleSubmit = async (res:any) => {
+        // if(res){
+        //     console.log(res);
+        //     setCampfire({...campfire, thumbnailUrl: "http://localhost:4000" + res.url});
+        // }
         try {
             let result: any;
             let campfireData = {
@@ -142,7 +149,7 @@ export function AddCampFireForm() {
                 status: CFStatus.TALKING,
                 private: campfire.invitation,
                 passcode: campfire.invitation ? campfire.password : "",
-                thumbnail: campfire.thumbnailUrl,
+                thumbnail: res ? "http://localhost:4000" + res.url : "",
                 soundtrack: [],
                 scenes: photos
                 };
@@ -177,18 +184,19 @@ export function AddCampFireForm() {
         <div className='dark min-h-screen grid bg-gradient-to-t to-white dark:to-black via-zinc-600 from-amber-100' style={{height: 'max-content'}}>
             <div className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900 max-h-14">
                 { page === 0 ?
-                    <div className="m-1 ml-5 pl-4 text-white">
+                    <div className="h-5 w-15 ml-5 pl-8 text-black btn invert"
+                    style={{ backgroundImage: `url(/back.png)` }}>
                         <Link to="/">Cancel</Link>
                     </div>
                 : (page === 1 &&
-                    <div className="h-6 w-14 ml-5 pl-8 text-white btn btn_previous " onClick={prevPage}>Back</div>
+                    <div className="h-5 w-15 ml-5 pl-8 text-white btn btn_previous " onClick={prevPage}>Back</div>
                     )
                 }
                 <div className="text-lg text-white m-auto">{title}</div>
                 { page === 0 ?
-                    <div className=" h-6 w-14 mr-5 pl-8 text-white btn btn_next" onClick={nextPage}>Next</div>
+                    <div className=" h-5 w-15 mr-5 pl-8 text-white btn btn_next" onClick={nextPage}>Next</div>
                 : (page === 1 ?
-                    <div className=" h-6 w-14 mr-5 pl-8 text-white btn btn_next" onClick={nextPage}>Submit</div>
+                    <div className=" h-5 w-15 mr-5 pl-8 text-white btn btn_next" onClick={nextPage}>Submit</div>
                     :<div className="m-1 mr-5 pr-4 text-white">
                         <Link to="/">Confirm</Link>
                     </div>

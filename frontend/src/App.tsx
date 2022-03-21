@@ -9,7 +9,7 @@ import { useCookies } from "react-cookie";
 function App() {
     const searchTextRef = useRef("");
     const [cookies, setCookie, removeCookie] = useCookies(["username"]);
-    const [lobbies, setLobbies] = useState(staticData);
+    const [lobbies, setLobbies] = useState([]);
     const isLoggedin = cookies.username && cookies.username !== "";
 
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
@@ -44,17 +44,19 @@ function App() {
                 query: `
                   query QueryCampfires($owned: Boolean, $follower: Boolean) {
                     campfires(owned: $owned, follower: $follower) {
+                      _id
                       ownerUsername
                       title
                       description
                       status
                       followers
+                      thumbnail
                     }
                   }
                 `,
                 variables: {
                     owned: false,
-                    follower: true,
+                    follower: false,
                 },
             }),
         })
@@ -70,9 +72,11 @@ function App() {
                     setLobbies(
                         json.data.campfires.map((item: any) => {
                             return {
+                                campfireId: item._id,
                                 ownerId: item.ownerUsername,
                                 title: item.title,
                                 description: item.description,
+                                thumbnail: item.thumbnail
                                 // url: item.url
                             };
                         })
@@ -87,7 +91,7 @@ function App() {
     }
 
     useEffect(() => {
-        // loadRecentLobbies();
+        loadRecentLobbies();
     }, []);
 
     return (

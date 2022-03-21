@@ -101,13 +101,13 @@ function Frames({ images, scrollFactor, ...props }) {
                     position={[-frameSpacing, 0, 0]}
                     loadPrevFunc={props.loadPrevFunc}
                     scrollFactor={scrollFactor}
-                    url="/prev.png"
+                    url="/prev2.png"
                     {...props}
                 />
             ) : null}
             {images.map((props, index) => (
                 <Frame
-                    key={props.ownerId}
+                    key={props.campfireId}
                     index={index}
                     position={[index * frameSpacing, 0, 0]}
                     scrollFactor={scrollFactor}
@@ -119,7 +119,7 @@ function Frames({ images, scrollFactor, ...props }) {
                     index={images.length}
                     position={[images.length * frameSpacing, 0, 0]}
                     loadNextFunc={props.loadNextFunc}
-                    url="/next.png"
+                    url="/next2.png"
                     scrollFactor={scrollFactor}
                     {...props}
                 />
@@ -136,6 +136,7 @@ function Frame({
     url,
     navigateFunc,
     scrollFactor,
+    thumbnail,
     ...props
 }) {
     const [hovered, setHovered] = useState(false);
@@ -222,7 +223,7 @@ function Frame({
                         ref={image}
                         raycast={() => null}
                         position={[0, 0, 0.7]}
-                        url={url}
+                        url={thumbnail == "" ?  "/assets/front.png": thumbnail}
                     />
                 </mesh>
             </mesh>
