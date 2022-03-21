@@ -30,6 +30,7 @@ export function AddCampFireSceneForm(props) {
   const [img, setImg] = useState(null);
 
   function handleDragStart(event){
+    console.log(photos);
     setActiveId(event.active.id);
     setImg(event.active.id);
   }
@@ -66,9 +67,17 @@ export function AddCampFireSceneForm(props) {
     }
 };
 
+const handleRemoveScene = (img_idx) => {
+  setPhotos((photos) => {
+    let newPhotos = [...photos];
+    newPhotos.splice(img_idx, 1);
+    return newPhotos;
+  });
+};
+
   const drawerBleeding = 56;
     return(<Fragment>
-      <div className=' h-3/5 w-full p-5'>
+      <div className=' h-3/5 w-full' style={{height: '80vh'}}>
         {img ?
         <div className='m-auto h-full w-full grid place-content-center z-10 overflow-y-hidden object-cover'>
           <img src={img}/>
@@ -105,10 +114,10 @@ export function AddCampFireSceneForm(props) {
                   <CampfireSceneGrid>
                   <SortableContext items={photos} strategy={rectSortingStrategy}>
                     {photos.map((item, index) => (
-                      <SortableScenePhoto key={item} url={item} index={index} />
+                      <SortableScenePhoto key={item} url={item} index={index} deletePhoto={() => handleRemoveScene(index)}/>
                     ))}
                     </SortableContext>
-                    <div className="h-52 w-full bg-slate-600 btn flex place-items-center">
+                    <div className="h-52 w-full bg-slate-400 btn flex place-items-center">
                     <input type="file" name="addImage" id='addImage' accept='image/*'hidden onChange={handleAddImage} />
                     <label htmlFor="addImage" className="w-14 h-14 m-auto btn btn_add"/>
                     </div> 

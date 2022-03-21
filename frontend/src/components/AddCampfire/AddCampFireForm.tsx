@@ -174,7 +174,7 @@ export function AddCampFireForm() {
     };
 
     return(
-        <div className='dark min-h-screen grid bg-gradient-to-t to-white dark:to-black via-zinc-600 from-amber-100 h-auto'>
+        <div className='dark min-h-screen grid bg-gradient-to-t to-white dark:to-black via-zinc-600 from-amber-100' style={{height: 'max-content'}}>
             <div className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900 max-h-14">
                 { page === 0 ?
                     <div className="m-1 ml-5 pl-4 text-white">
