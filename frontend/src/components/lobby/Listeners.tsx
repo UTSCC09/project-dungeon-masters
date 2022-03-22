@@ -48,7 +48,7 @@ function Listener(props: {
         <div className="bg-gray-300 w-48 h-12 my-2 flex flex-row items-center rounded-lg px-4">
             <div className="flex-grow">{username}</div>
             <button
-                className="text-red-700"
+                className="text-red-700 font-semibold"
                 onClick={(e) => {
                     e.preventDefault();
                     muteHandler(muted);

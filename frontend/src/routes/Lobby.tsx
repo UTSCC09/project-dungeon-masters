@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 
-const staticData = [
+const staticListeners = [
     {
         username: "aquil",
     },
@@ -24,12 +24,24 @@ const staticData = [
     },
 ];
 
+const staticImages = [
+    {
+        url: "/next.png",
+    },
+    {
+        url: "/next2.png",
+    },
+];
+
 interface PropsType {}
 
 export default function Lobby(props: PropsType) {
     const lobbyId = useParams().lobbyId;
     const navigate = useNavigate();
     const [status, setStatus] = useState(0);
+    const [listeners, setListeners] = useState(staticListeners);
+    const [images, setImages] = useState(staticImages);
+    const [selected, setSelected] = useState(0);
     return (
         <div className="">
             <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
@@ -87,7 +99,27 @@ export default function Lobby(props: PropsType) {
                 </div>
             </div>
             <div className="bg-green-200 absolute top-1/4 left-[80%] flex flex-col justify-center items-center max-h-72">
-                <Listeners userList={staticData} />
+                <Listeners userList={listeners} />
+            </div>
+            <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row">
+                {images.map((item, index) => {
+                    return (
+                        <img
+                            className={
+                                "mx-2 border-solid " +
+                                (index === selected
+                                    ? "border-4 border-green-400"
+                                    : "")
+                            }
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setSelected(index);
+                            }}
+                            key={index}
+                            src={item.url}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
