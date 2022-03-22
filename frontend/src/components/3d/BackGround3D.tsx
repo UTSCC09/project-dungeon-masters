@@ -14,7 +14,7 @@ const BackGround3D = function (props: PropsType) {
             <Canvas>
                 <CameraControls />
                 <Skybox
-                    path={[
+                    paths={[
                         "/assets/right.png",
                         "/assets/left.png",
                         "/assets/top.png",
