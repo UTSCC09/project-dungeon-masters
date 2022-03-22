@@ -4,25 +4,18 @@ import CameraControls from "./CameraControls";
 import Skybox from "./Skybox";
 
 interface PropsType {
-    component: ReactElement;
+    path?: string; // A single path to an equirectangular background.
+    paths?: string[]; // A list of six paths [px, nx, py, ny, pz, nz].
+    component?: ReactElement; // A component to render in front of the background.
 }
 
 const BackGround3D = function (props: PropsType) {
-    const { component } = props;
+    const { component, path, paths } = props;
     return (
         <div className="fixed m-0 p-0 w-full h-full">
             <Canvas>
                 <CameraControls />
-                <Skybox
-                    path={[
-                        "/assets/right.png",
-                        "/assets/left.png",
-                        "/assets/top.png",
-                        "/assets/bottom.png",
-                        "/assets/front.png",
-                        "/assets/back.png",
-                    ]}
-                />
+                <Skybox path={path} paths={paths} />
             </Canvas>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 {component}
