@@ -9,6 +9,7 @@ import { AddCampFireForm } from "./components/AddCampfire/AddCampFireForm";
 import { CookiesProvider } from "react-cookie";
 import Profile from "./routes/Profile";
 import Lobby from "./routes/Lobby";
+import BackGround3D from "./components/3d/BackGround3D";
 
 ReactDOM.render(
     <React.StrictMode>

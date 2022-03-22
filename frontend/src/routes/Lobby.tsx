@@ -1,13 +1,35 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
+
+const staticData = [
+    {
+        username: "aquil",
+    },
+    {
+        username: "Artina",
+    },
+    {
+        username: "Wilson",
+    },
+    {
+        username: "Yiyang",
+    },
+    {
+        username: "Test1",
+    },
+    {
+        username: "Test2",
+    },
+];
 
 interface PropsType {}
 
 export default function Lobby(props: PropsType) {
     const lobbyId = useParams().lobbyId;
     const navigate = useNavigate();
-    console.log(lobbyId);
+    const [status, setStatus] = useState(0);
     return (
         <div className="">
             <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
@@ -22,11 +44,50 @@ export default function Lobby(props: PropsType) {
                     ></button>
                 </div>
             </nav>
-            <div className="bg-green-200 absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                123
+            <BackGround3D
+                autoRotate={false}
+                path="https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png"
+            />
+            <div className="bg-green-200 absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 pt-2 pb-1 rounded-xl">
+                <div className="text-center w-full">Lobby Name</div>
+                <div>
+                    <button
+                        className="bg-red-200 px-2 py-1 rounded-l-full w-16"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setStatus(0);
+                            // TODO: API
+                        }}
+                    >
+                        Talking
+                    </button>
+                    <button
+                        className="bg-red-300 px-2 py-1 w-16"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setStatus(1);
+                            // TODO: API
+                        }}
+                    >
+                        Telling
+                    </button>
+                    <button
+                        className="bg-red-400 px-2 py-1 rounded-r-full w-16"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setStatus(2);
+                            // TODO: API
+                        }}
+                    >
+                        Ending
+                    </button>
+                </div>
+                <div className="text-center w-full text-xs">
+                    status: {["Talking", "Telling", "Ending"][status]}
+                </div>
             </div>
             <div className="bg-green-200 absolute top-1/4 left-[80%] flex flex-col justify-center items-center max-h-72">
-                <Listeners userList={[]} />
+                <Listeners userList={staticData} />
             </div>
         </div>
     );

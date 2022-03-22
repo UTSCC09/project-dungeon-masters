@@ -4,7 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 extend({ OrbitControls });
 
-export default function CameraControls() {
+export default function CameraControls({ autoRotate = true }) {
     // Get a reference to the Three.js Camera, and the canvas html element.
     // We need these to setup the OrbitControls class.
     // https://threejs.org/docs/#examples/en/controls/OrbitControls
@@ -21,7 +21,7 @@ export default function CameraControls() {
         <orbitControls
             ref={controls}
             args={[camera, domElement]}
-            autoRotate
+            autoRotate={autoRotate}
             autoRotateSpeed={0.5}
             enableZoom={false}
         />

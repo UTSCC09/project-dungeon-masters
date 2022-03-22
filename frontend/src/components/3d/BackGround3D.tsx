@@ -7,14 +7,15 @@ interface PropsType {
     path?: string; // A single path to an equirectangular background.
     paths?: string[]; // A list of six paths [px, nx, py, ny, pz, nz].
     component?: ReactElement; // A component to render in front of the background.
+    autoRotate?: boolean; // Whether the background should automatically rotate.
 }
 
 const BackGround3D = function (props: PropsType) {
-    const { component, path, paths } = props;
+    const { component, path, paths, autoRotate } = props;
     return (
         <div className="fixed m-0 p-0 w-full h-full">
             <Canvas>
-                <CameraControls />
+                <CameraControls autoRotate={autoRotate} />
                 <Skybox path={path} paths={paths} />
             </Canvas>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
