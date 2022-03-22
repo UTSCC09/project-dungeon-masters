@@ -8,6 +8,7 @@ import LRFormWrapper from "./routes/LRFromWrapper";
 import { AddCampFireForm } from "./components/AddCampfire/AddCampFireForm";
 import { CookiesProvider } from "react-cookie";
 import Profile from "./routes/Profile";
+import Lobby from "./routes/Lobby";
 
 ReactDOM.render(
     <React.StrictMode>
@@ -18,6 +19,9 @@ ReactDOM.render(
                     <Route path="/login" element={<LRFormWrapper />} />
                     <Route path="/addCampfire" element={<AddCampFireForm />} />
                     <Route path="/profile" element={<Profile />}></Route>
+                    <Route path="/lobby" element={<Lobby />}>
+                        <Route path=":lobbyId" element={null} />
+                    </Route>
                     <Route
                         path="*"
                         element={
