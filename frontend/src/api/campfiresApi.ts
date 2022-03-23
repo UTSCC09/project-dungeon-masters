@@ -119,6 +119,25 @@ export class CampfireApi extends BaseGraphqlApi {
         return this.graphQLCall(query, variables);
     };
 
+
+    /**
+     *
+     * @param campfireId The id of the campfire.
+     * @returns owner, follower, none
+     */
+    static getCampfireRole = async (
+        campfireId: string
+    ) => {
+        let query = `query GetCampfireRole($campfireId: String) {
+                        getCampfireRole(campfireId: $campfireId) 
+                      }`;
+        let variables = {
+            campfireId,
+        };
+
+        return this.graphQLCall(query, variables);
+    };
+
     /**
      *
      * @param campfireId The id of the campfire.
@@ -129,9 +148,13 @@ export class CampfireApi extends BaseGraphqlApi {
      */
     static getCampfireStatusAndAssets = async (
         campfireId: string,
-        responseFields = ["???"]
+        responseFields = [CampfireFields.status, CampfireFields.scenes, CampfireFields.followers]
     ) => {
-        let query = `????`;
+        let query = `query QueryCampfires($campfireId: String) {
+                        campfires(campfireId: $campfireId) {
+                          ${CampfireApi.generateResponseFields(responseFields)}
+                        }
+                      }`;
         let variables = {
             campfireId,
         };

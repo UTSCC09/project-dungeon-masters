@@ -124,11 +124,14 @@ const RootQueryType = new GraphQLObjectType({
         campfires: {
             type: new GraphQLList(CampfireType),
             args: {
+                campfireId: { type: GraphQLString },
                 owned: { type: GraphQLBoolean },
                 follower: { type: GraphQLBoolean },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
+                if (args.campfireId !== undefined && args.campfireId !== '') return [Campfire.findById(args.campfireId)];
+
                 let filter = (owned, follower) => {
                     let filter = { $or: [] };
                     if (owned)
@@ -145,7 +148,7 @@ const RootQueryType = new GraphQLObjectType({
                 return Campfire.find(filter(args.owned, args.follower));
             },
         },
-        campfireRole: {
+        getCampfireRole: {
             type: GraphQLString,
             args: {
                 campfireId: {type: GraphQLString},
