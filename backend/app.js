@@ -56,7 +56,7 @@ app.use(
 
 app.use(function (req, res, next) {
     req.username = (req.session && req.session.username)? req.session.username : null;
-    console.log("HTTP request", req.username, req.method, req.url, req.body);
+    // console.log("HTTP request", req.username, req.method, req.url, req.body);
     next();
 });
 
@@ -145,6 +145,19 @@ const RootQueryType = new GraphQLObjectType({
                 return Campfire.find(filter(args.owned, args.follower));
             },
         },
+        campfireRole: {
+            type: GraphQLString,
+            args: {
+                campfireId: {type: GraphQLString},
+            },
+            resolve: async (source, args, context) => {
+                isAuthenticated(context);
+                let campfireDetails = await Campfire.find({_id: args.campfireId});
+                if (campfireDetails[0].ownerUsername === context.session.username) return 'owner';
+                if (campfireDetails[0].followers.includes(context.session.username)) return 'follower';
+                return 'none';
+            }
+        }
     }),
 });
 
