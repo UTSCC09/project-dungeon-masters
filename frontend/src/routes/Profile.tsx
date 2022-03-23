@@ -3,6 +3,7 @@ import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import staticData from "../assets/staticData/lobbies";
 import {UserApi, UserFields} from "../api/userApi";
+import {CampfireApi, CampfireFields} from "../api/campfiresApi";
 
 interface PropsType {}
 
@@ -58,30 +59,9 @@ export default function Profile(props: PropsType) {
     }
 
     function getLobbiesFromAPI() {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                  query QueryCampfires($owned: Boolean, $follower: Boolean) {
-                    campfires(owned: $owned, follower: $follower) {
-                      ownerUsername
-                      title
-                      description
-                      status
-                      followers
-                    }
-                  }
-                `,
-                variables: {
-                    owned: true,
-                    follower: false,
-                },
-            }),
-        })
+
+        CampfireApi.queryCampfires(true, false, [CampfireFields.ownerUsername,
+            CampfireFields.title, CampfireFields.description, CampfireFields.status, CampfireFields.followers])
             .then((res) => {
                 if (res) {
                     return res.json();

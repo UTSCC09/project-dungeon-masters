@@ -6,6 +6,7 @@ import LobbyList from "./components/3d/LobbyList";
 import staticData from "./assets/staticData/lobbies";
 import { useCookies } from "react-cookie";
 import {UserApi} from "./api/userApi";
+import {CampfireApi, CampfireFields} from "./api/campfiresApi";
 
 function App() {
     const searchTextRef = useRef("");
@@ -18,35 +19,9 @@ function App() {
         UserApi.signOut();
         removeCookie("username");
     }
-
     function loadRecentLobbies() {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                  query QueryCampfires($owned: Boolean, $follower: Boolean) {
-                    campfires(owned: $owned, follower: $follower) {
-                      _id
-                      ownerUsername
-                      title
-                      description
-                      status
-                      followers
-                      thumbnail
-                    }
-                  }
-                `,
-                variables: {
-                    owned: false,
-                    follower: false,
-                },
-            }),
-        })
-            .then((res) => {
+        CampfireApi.queryCampfires(false, false, [CampfireFields.id, CampfireFields.ownerUsername, CampfireFields.title,
+            CampfireFields.description, CampfireFields.status, CampfireFields.followers, CampfireFields.thumbnail]).then((res) => {
                 if (res) {
                     return res.json();
                 } else {
