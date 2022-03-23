@@ -30,14 +30,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const multer = require("multer");
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, 'uploads')
+        callback(null, "uploads");
     },
-    filename: (req,file, callback) => {
-        callback(null, file.fieldname + '-' + Date.now());
-    }
+    filename: (req, file, callback) => {
+        callback(null, file.fieldname + "-" + Date.now());
+    },
 });
-const upload = multer({ storage: storage});
-
+const upload = multer({ storage: storage });
 
 app.use(
     session({
@@ -55,7 +54,8 @@ app.use(
 );
 
 app.use(function (req, res, next) {
-    req.username = (req.session && req.session.username)? req.session.username : null;
+    req.username =
+        req.session && req.session.username ? req.session.username : null;
     console.log("HTTP request", req.username, req.method, req.url, req.body);
     next();
 });
@@ -377,7 +377,6 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType,
 });
 
-
 var whitelist = [
     "http://localhost:3000",
     "http://localhost:4000" /** other domains if any */,
@@ -411,48 +410,52 @@ app.use("/graphql", (req, res, next) => {
     })(req, res, next);
 });
 
-app.post('/api/images/', upload.single('picture'), function (req, res, next) {
+app.post("/api/images/", upload.single("picture"), function (req, res, next) {
     var obj = {
         img: {
-            data: fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)),
+            data: fs.readFileSync(
+                join(__dirname + "/uploads/" + req.file.filename)
+            ),
             contentType: req.file.mimetype,
-            path: req.file.path
+            path: req.file.path,
         },
-        url:""
-    }
+        url: "",
+    };
     Image.create(obj, (err, image) => {
         if (err) {
             return res.status(500).end(err);
-        }
-        else {
+        } else {
             Image.findOneAndUpdate(
                 {
                     _id: image._id,
                 },
                 {
-                    url: "/api/images/picture/" + image._id
+                    url: "/api/images/picture/" + image._id,
                 },
-                { new: true }
-            , (err, newImage) => {
-                if (err) {
-                    return res.status(500).end(err);
+                { new: true },
+                (err, newImage) => {
+                    if (err) {
+                        return res.status(500).end(err);
+                    }
+                    res.json({ url: "/api/images/picture/" + image._id });
                 }
-                res.json({url: "/api/images/picture/" + image._id });
-            });
+            );
         }
     });
 });
 
-app.get('/api/images/picture/:id', function (req, res, next) {
-    Image.findOne({_id: req.params.id},function(err, image){
-        if(err){
+app.get("/api/images/picture/:id", function (req, res, next) {
+    Image.findOne({ _id: req.params.id }, function (err, image) {
+        if (err) {
             return res.status(500).end(err);
         }
-        if(!image){
-            return res.status(404).end("Image with id:" + req.params.id + " does not exist.");
-        }else{
+        if (!image) {
+            return res
+                .status(404)
+                .end("Image with id:" + req.params.id + " does not exist.");
+        } else {
             res.setHeader("Content-Type", image.img.contentType);
-            res.sendFile(join(__dirname + "/" + image.img.path));
+            res.send(image.img.data);
         }
     });
 });

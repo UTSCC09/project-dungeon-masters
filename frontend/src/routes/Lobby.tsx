@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 
 const staticListeners = [
     {
+        // Can add more fields here.
         username: "aquil",
     },
     {
@@ -26,10 +27,32 @@ const staticListeners = [
 
 const staticImages = [
     {
-        url: "/next.png",
+        // Can add more fields (name, etc) if needed.
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
     },
     {
-        url: "/next2.png",
+        url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+    },
+    {
+        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
     },
 ];
 
@@ -42,6 +65,92 @@ export default function Lobby(props: PropsType) {
     const [listeners, setListeners] = useState(staticListeners);
     const [images, setImages] = useState(staticImages);
     const [selected, setSelected] = useState(0);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    function fetchListeners() {
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: `
+                  // This query will return a list of all the users in the lobby
+                `,
+                variables: {},
+            }),
+        })
+            .then((res) => {
+                if (res) {
+                    return res.json();
+                } else {
+                    throw new Error("Response is null");
+                }
+            })
+            .then((json) => {
+                if (!json.errors) {
+                    // setListeners(json.data.???);
+                } else {
+                    throw new Error(json.errors[0].message);
+                }
+            })
+            .catch((e) => {
+                setErrorMessage(String(e));
+            });
+    }
+
+    function fetchImages() {
+        fetch("http://localhost:4000/graphql/", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json; charset=UTF-8",
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                query: `
+                  // This query will return a list of the background images
+                `,
+                variables: {},
+            }),
+        })
+            .then((res) => {
+                if (res) {
+                    return res.json();
+                } else {
+                    throw new Error("Response is null");
+                }
+            })
+            .then((json) => {
+                if (!json.errors) {
+                    // setImages(json.data.???);
+                } else {
+                    throw new Error(json.errors[0].message);
+                }
+            })
+            .catch((e) => {
+                setErrorMessage(String(e));
+            });
+    }
+
+    useEffect(() => {
+        fetchListeners();
+        fetchImages();
+        return () => {
+            // Unsubscribe from events
+        };
+    }, []);
+
+    function handleStatusChange(oldStatus: number, newStatus: number) {
+        setStatus(newStatus);
+        // TODO: Send status change to server
+    }
+
+    function handleExitLobby() {
+        // TODO: Send exit lobby request to server
+        navigate("/");
+    }
+
     return (
         <div className="">
             <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
@@ -51,15 +160,12 @@ export default function Lobby(props: PropsType) {
                         style={{ backgroundImage: `url(/back.png)` }}
                         onClick={(e) => {
                             e.preventDefault();
-                            navigate("/");
+                            handleExitLobby();
                         }}
                     ></button>
                 </div>
             </nav>
-            <BackGround3D
-                autoRotate={false}
-                path="https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png"
-            />
+            <BackGround3D autoRotate={false} path={images[selected].url} />
             <div className="bg-green-200 absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 pt-2 pb-1 rounded-xl">
                 <div className="text-center w-full">Lobby Name</div>
                 <div>
@@ -67,8 +173,7 @@ export default function Lobby(props: PropsType) {
                         className="bg-red-200 px-2 py-1 rounded-l-full w-16"
                         onClick={(e) => {
                             e.preventDefault();
-                            setStatus(0);
-                            // TODO: API
+                            handleStatusChange(status, 0);
                         }}
                     >
                         Talking
@@ -77,8 +182,7 @@ export default function Lobby(props: PropsType) {
                         className="bg-red-300 px-2 py-1 w-16"
                         onClick={(e) => {
                             e.preventDefault();
-                            setStatus(1);
-                            // TODO: API
+                            handleStatusChange(status, 1);
                         }}
                     >
                         Telling
@@ -87,8 +191,7 @@ export default function Lobby(props: PropsType) {
                         className="bg-red-400 px-2 py-1 rounded-r-full w-16"
                         onClick={(e) => {
                             e.preventDefault();
-                            setStatus(2);
-                            // TODO: API
+                            handleStatusChange(status, 2);
                         }}
                     >
                         Ending
@@ -98,10 +201,23 @@ export default function Lobby(props: PropsType) {
                     status: {["Talking", "Telling", "Ending"][status]}
                 </div>
             </div>
+            {errorMessage !== "" ? (
+                <div className="bg-red-200 absolute top-[30%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded">
+                    <div>{errorMessage}</div>
+                    <button
+                        className="absolute right-0 top-0 bg-red-600 rounded-full translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-cover"
+                        style={{ backgroundImage: `url(/remove.png)` }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setErrorMessage("");
+                        }}
+                    ></button>
+                </div>
+            ) : null}
             <div className="bg-green-200 absolute top-1/4 left-[80%] flex flex-col justify-center items-center max-h-72">
                 <Listeners userList={listeners} />
             </div>
-            <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row">
+            <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row overflow-auto">
                 {images.map((item, index) => {
                     return (
                         <img
@@ -113,6 +229,7 @@ export default function Lobby(props: PropsType) {
                             }
                             onClick={(e) => {
                                 e.preventDefault();
+                                // Broadcast to listeners
                                 setSelected(index);
                             }}
                             key={index}
