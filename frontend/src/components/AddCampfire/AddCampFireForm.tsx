@@ -4,7 +4,7 @@ import LobbyList from "../3d/LobbyList";
 import { api } from "../api";
 import { AddCampFireInfoForm } from "./AddCampFireInfoForm";
 import { AddCampFireSceneForm } from "./AddCampFireSceneForm";
-import {CampfireApi, CampfireFields} from "../../api/campfiresApi";
+import { CampfireApi, CampfireFields } from "../../api/campfiresApi";
 
 export interface CampFire {
     title: string;
@@ -117,8 +117,8 @@ export function AddCampFireForm() {
         setPage(page - 1);
     };
 
-    const uploadThumbnail = async() => {
-        if(campfire.thumbnail) {
+    const uploadThumbnail = async () => {
+        if (campfire.thumbnail) {
             console.log("submit with thumbnail");
             await api.addImage(campfire.thumbnail).then(handleSubmit);
         } else {
@@ -127,12 +127,7 @@ export function AddCampFireForm() {
     };
 
     const handleSubmit = async (res: any) => {
-        // if(res){
-        //     console.log(res);
-        //     setCampfire({...campfire, thumbnailUrl: "http://localhost:4000" + res.url});
-        // }
         try {
-            let result: any;
             let campfireData = {
                 title: campfire.title,
                 description: campfire.description,
@@ -141,16 +136,29 @@ export function AddCampFireForm() {
                 passcode: campfire.invitation ? campfire.password : "",
                 thumbnail: res ? "http://localhost:4000" + res.url : "",
                 soundtrack: [],
-                scenes: photos
-                };
-            CampfireApi.addCampfire(campfireData, [], [CampfireFields.title, CampfireFields.id, CampfireFields.followers]).then(res => {
-                return res.json();
-            }).then(json => {
-                setLobby({id:json.data.addCampfire._id, title: json.data.addCampfire.title});
-            }).catch ((error)=>{
-                        setErrorMessage(error);
-                    }
-            );
+                scenes: photos,
+            };
+            CampfireApi.addCampfire(
+                campfireData,
+                [],
+                [
+                    CampfireFields.title,
+                    CampfireFields.id,
+                    CampfireFields.followers,
+                ]
+            )
+                .then((res) => {
+                    return res.json();
+                })
+                .then((json) => {
+                    setLobby({
+                        id: json.data.addCampfire._id,
+                        title: json.data.addCampfire.title,
+                    });
+                })
+                .catch((error) => {
+                    setErrorMessage(error);
+                });
         } catch (e) {
             console.error(e);
             setErrorMessage(String(e));

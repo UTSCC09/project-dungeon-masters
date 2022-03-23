@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { CampfireApi } from "../api/campfiresApi";
 import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 
@@ -59,7 +60,7 @@ const staticImages = [
 interface PropsType {}
 
 export default function Lobby(props: PropsType) {
-    const lobbyId = useParams().lobbyId;
+    const lobbyId = useParams().lobbyId || "";
     const navigate = useNavigate();
     const [status, setStatus] = useState(0);
     const [listeners, setListeners] = useState(staticListeners);
@@ -67,20 +68,12 @@ export default function Lobby(props: PropsType) {
     const [selected, setSelected] = useState(0);
     const [errorMessage, setErrorMessage] = useState("");
 
+    if (lobbyId === "") {
+        setErrorMessage("Lobby ID is empty.");
+    }
+
     function fetchListeners() {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                  // This query will return a list of all the users in the lobby
-                `,
-                variables: {},
-            }),
-        })
+        CampfireApi.getListners(lobbyId)
             .then((res) => {
                 if (res) {
                     return res.json();
@@ -100,20 +93,8 @@ export default function Lobby(props: PropsType) {
             });
     }
 
-    function fetchImages() {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                  // This query will return a list of the background images
-                `,
-                variables: {},
-            }),
-        })
+    function fetchBackgroundImages() {
+        CampfireApi.getBackgroundImages(lobbyId)
             .then((res) => {
                 if (res) {
                     return res.json();
@@ -135,7 +116,7 @@ export default function Lobby(props: PropsType) {
 
     useEffect(() => {
         fetchListeners();
-        fetchImages();
+        fetchBackgroundImages();
         return () => {
             // Unsubscribe from events
         };
