@@ -5,6 +5,7 @@ import { Canvas } from "react-three-fiber";
 import CameraControls from "./3d/CameraControls";
 import Skybox from "./3d/Skybox";
 import StyledLink from "./StyledLink";
+import {UserApi, UserFields} from "../api/userApi";
 
 interface PropsType {
     setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,13 +15,6 @@ const Register = function (props: PropsType) {
     const { setShowLogin } = props;
 
     const pwdConfirmRef = useRef(null);
-    const registerQuery = `
-    mutation signUp($username: String, $password: String) {
-        signUp(username: $username, password: $password) {
-            _id
-            username
-        }
-    }`;
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -43,20 +37,7 @@ const Register = function (props: PropsType) {
                 return;
             }
         }
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: registerQuery,
-                variables: {
-                    username,
-                    password,
-                },
-            }),
-        })
+        UserApi.signUp(username, password, [UserFields._id, UserFields.username])
             .then((res) => {
                 if (res) {
                     return res.json();

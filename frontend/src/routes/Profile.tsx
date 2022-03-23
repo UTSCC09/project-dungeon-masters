@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 import staticData from "../assets/staticData/lobbies";
+import {UserApi, UserFields} from "../api/userApi";
+import {CampfireApi, CampfireFields} from "../api/campfiresApi";
 
 interface PropsType {}
 
@@ -19,27 +21,7 @@ export default function Profile(props: PropsType) {
     const [errorMessage, setErrorMessage] = useState("");
 
     function getUserInfoFromAPI() {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                    query QueryUsers {
-                      users {
-                        description
-                        socialMedia {
-                          twitter,
-                          instagram
-                        }
-                      }
-                    }
-                `,
-                variables: {},
-            }),
-        })
+        UserApi.queryUsers([UserFields.description, UserFields.socialMedia])
             .then((res) => {
                 if (res) {
                     return res.json();
@@ -77,30 +59,9 @@ export default function Profile(props: PropsType) {
     }
 
     function getLobbiesFromAPI() {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                  query QueryCampfires($owned: Boolean, $follower: Boolean) {
-                    campfires(owned: $owned, follower: $follower) {
-                      ownerUsername
-                      title
-                      description
-                      status
-                      followers
-                    }
-                  }
-                `,
-                variables: {
-                    owned: true,
-                    follower: false,
-                },
-            }),
-        })
+
+        CampfireApi.queryCampfires(true, false, [CampfireFields.ownerUsername,
+            CampfireFields.title, CampfireFields.description, CampfireFields.status, CampfireFields.followers])
             .then((res) => {
                 if (res) {
                     return res.json();
@@ -140,35 +101,7 @@ export default function Profile(props: PropsType) {
     }
 
     function updateUserInfo(socialLinks: string[], description: string) {
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                    mutation ModifyUser($userData: UserInputObject) {
-                      modifyUser(userData: $userData) {
-                        description
-                        socialMedia {
-                          twitter
-                          instagram
-                        }
-                      }
-                    }
-                `,
-                variables: {
-                    userData: {
-                        description: description,
-                        socialMedia: {
-                            twitter: socialLinks[0],
-                            instagram: socialLinks[1],
-                        },
-                    },
-                },
-            }),
-        });
+        UserApi.modifyUser(description, socialLinks[0], socialLinks[1], [UserFields.description, UserFields.socialMedia]);
         //Returns
         // {
         //     "data": {
