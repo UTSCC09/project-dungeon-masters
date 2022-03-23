@@ -4,6 +4,7 @@ import LobbyList from "../3d/LobbyList";
 import { api } from "../api";
 import { AddCampFireInfoForm } from "./AddCampFireInfoForm";
 import { AddCampFireSceneForm } from "./AddCampFireSceneForm";
+import { CampfireApi, CampfireFields } from "../../api/campfiresApi";
 
 export interface CampFire {
     title: string;
@@ -116,13 +117,6 @@ export function AddCampFireForm() {
         setPage(page - 1);
     };
 
-    const submitQuery = `mutation AddCampfire($campfireInput: CampfireInputObject, $followers: [String]){
-        addCampfire(campfireData: $campfireInput, followers: $followers) {
-          title
-         _id
-        }
-      }`;
-
     const uploadThumbnail = async () => {
         if (campfire.thumbnail) {
             console.log("submit with thumbnail");
@@ -133,12 +127,7 @@ export function AddCampFireForm() {
     };
 
     const handleSubmit = async (res: any) => {
-        // if(res){
-        //     console.log(res);
-        //     setCampfire({...campfire, thumbnailUrl: "http://localhost:4000" + res.url});
-        // }
         try {
-            let result: any;
             let campfireData = {
                 title: campfire.title,
                 description: campfire.description,
@@ -149,20 +138,15 @@ export function AddCampFireForm() {
                 soundtrack: [],
                 scenes: photos,
             };
-            fetch("http://localhost:4000/graphql/", {
-                method: "POST",
-                headers: {
-                    "content-type": "application/json; charset=UTF-8",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    query: submitQuery,
-                    variables: {
-                        campfireInput: campfireData,
-                        followers: [],
-                    },
-                }),
-            })
+            CampfireApi.addCampfire(
+                campfireData,
+                [],
+                [
+                    CampfireFields.title,
+                    CampfireFields.id,
+                    CampfireFields.followers,
+                ]
+            )
                 .then((res) => {
                     return res.json();
                 })
