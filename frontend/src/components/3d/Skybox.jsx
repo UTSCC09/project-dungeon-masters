@@ -13,7 +13,7 @@ export default function Skybox(props) {
         const backgroundImage = loader.load(path);
         backgroundImage.mapping = EquirectangularRefractionMapping;
         scene.background = backgroundImage;
-    } else {
+    } else if (paths !== undefined) {
         const loader = new CubeTextureLoader();
         scene.background = loader.load(paths);
     }

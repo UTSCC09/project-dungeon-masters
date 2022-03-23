@@ -27,35 +27,18 @@ const staticListeners = [
 ];
 
 const staticImages = [
-    {
-        // Can add more fields (name, etc) if needed.
-        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
-    },
-    {
-        url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
-    },
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
+    "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
+    "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg/1600px-Plate_Carr%C3%A9e_with_Tissot%27s_Indicatrices_of_Distortion.svg.png",
+    "https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/1280px-BlankMap-Equirectangular.svg.png",
 ];
+
+const statusIndex = ["Preparing", "Talking", "Telling", "Ending"];
 
 interface PropsType {}
 
@@ -82,10 +65,29 @@ export default function Lobby(props: PropsType) {
                 }
             })
             .then((json) => {
+                // {
+                //   data: {
+                //     campfires: [
+                //       {
+                //         followers: [],
+                //         scenes: [
+                //           "http://.../pic1.jpg",
+                //           "http://.../pic2.jpg",
+                //         ],
+                //         status: "talking"
+                //       }
+                //     ]
+                //   }
+                // }
+                console.log(json);
                 if (!json.errors) {
-                    // setStatus(json.data.???);
-                    // setListeners(json.data.???);
-                    // setImages(json.data.???);
+                    setStatus(
+                        statusIndex
+                            .map((item) => item.toLowerCase())
+                            .indexOf(json.data.campfires[0].status)
+                    );
+                    setListeners(json.data.campfires[0].followers);
+                    setImages(json.data.campfires[0].scenes);
                 } else {
                     throw new Error(json.errors[0].message);
                 }
@@ -122,7 +124,7 @@ export default function Lobby(props: PropsType) {
                     ></button>
                 </div>
             </nav>
-            <BackGround3D autoRotate={false} path={images[selected].url} />
+            <BackGround3D autoRotate={false} path={images[selected]} />
             <div className="bg-green-200 absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 pt-2 pb-1 rounded-xl">
                 <div className="text-center w-full">Lobby Name</div>
                 <div>
@@ -164,8 +166,7 @@ export default function Lobby(props: PropsType) {
                     </button>
                 </div>
                 <div className="text-center w-full text-xs">
-                    status:{" "}
-                    {["Preparing", "Talking", "Telling", "Ending"][status]}
+                    status: {statusIndex[status]}
                 </div>
             </div>
             {errorMessage !== "" ? (
@@ -196,11 +197,11 @@ export default function Lobby(props: PropsType) {
                             }
                             onClick={(e) => {
                                 e.preventDefault();
-                                // Broadcast to listeners
+                                // TODO: Broadcast to listeners
                                 setSelected(index);
                             }}
                             key={index}
-                            src={item.url}
+                            src={item}
                         />
                     );
                 })}
