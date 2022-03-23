@@ -5,6 +5,7 @@ import LobbyList from "./components/3d/LobbyList";
 
 import staticData from "./assets/staticData/lobbies";
 import { useCookies } from "react-cookie";
+import {UserApi} from "./api/userApi";
 
 function App() {
     const searchTextRef = useRef("");
@@ -14,22 +15,7 @@ function App() {
 
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         e.preventDefault();
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: `
-                    mutation SignOut {
-                        signOut {
-                            username
-                        }
-                    }
-                `,
-            }),
-        });
+        UserApi.signOut();
         removeCookie("username");
     }
 

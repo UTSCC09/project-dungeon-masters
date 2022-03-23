@@ -2,6 +2,7 @@ import React from "react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import StyledLink from "./StyledLink";
+import {UserApi, UserFields} from "../api/userApi";
 
 interface PropsType {
     setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
@@ -10,13 +11,6 @@ interface PropsType {
 const Login = function (props: PropsType) {
     const { setShowLogin } = props;
 
-    const loginQuery = `
-    mutation signIn($username: String, $password: String) {
-        signIn(username: $username, password: $password) {
-            _id
-            username
-        }
-    }`;
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState<string>("");
@@ -24,21 +18,7 @@ const Login = function (props: PropsType) {
 
     const signinHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        fetch("http://localhost:4000/graphql/", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json; charset=UTF-8",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                query: loginQuery,
-                variables: {
-                    username,
-                    password,
-                },
-            }),
-        })
-            .then((res) => {
+        UserApi.signIn(username, password, [UserFields._id, UserFields.username]).then((res) => {
                 if (res) {
                     return res.json();
                 } else {

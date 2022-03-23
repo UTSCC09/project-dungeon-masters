@@ -452,7 +452,7 @@ app.get('/api/images/picture/:id', function (req, res, next) {
             return res.status(404).end("Image with id:" + req.params.id + " does not exist.");
         }else{
             res.setHeader("Content-Type", image.img.contentType);
-            res.sendFile(join(__dirname + "/" + image.img.path));
+            res.send(image.img.data);
         }
     });
 });
