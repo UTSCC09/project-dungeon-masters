@@ -27,6 +27,30 @@ export default function Credits() {
             >
                 Delete icons created by Pixel perfect - Flaticon
             </a>
+            <a
+                href="https://www.flaticon.com/free-icons/mute"
+                title="mute icons"
+            >
+                Mute icons created by Kiranshastry - Flaticon
+            </a>
+            <a
+                href="https://www.flaticon.com/free-icons/microphone"
+                title="microphone icons"
+            >
+                Microphone icons created by Freepik - Flaticon
+            </a>
+            <a
+                href="https://www.flaticon.com/free-icons/speaker"
+                title="speaker icons"
+            >
+                Speaker icons created by Pixel perfect - Flaticon
+            </a>
+            <a
+                href="https://www.flaticon.com/free-icons/mute"
+                title="mute icons"
+            >
+                Mute icons created by Pixel perfect - Flaticon
+            </a>
         </>
     );
 }
