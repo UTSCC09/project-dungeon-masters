@@ -32,7 +32,7 @@ export class UserApi extends BaseGraphqlApi {
         return this.graphQLCall(query, variables);
     }
 
-    static signOut = async (responseFields = ['']) => {
+    static signOut = async (responseFields = ['username']) => {
         let query = `mutation SignOut {
                         signOut {
                             ${this.generateResponseFields(responseFields)}
