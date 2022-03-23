@@ -72,8 +72,8 @@ export default function Lobby(props: PropsType) {
         setErrorMessage("Lobby ID is empty.");
     }
 
-    function fetchListeners() {
-        CampfireApi.getListners(lobbyId)
+    useEffect(() => {
+        CampfireApi.getCampfireStatusAndAssets(lobbyId)
             .then((res) => {
                 if (res) {
                     return res.json();
@@ -83,27 +83,8 @@ export default function Lobby(props: PropsType) {
             })
             .then((json) => {
                 if (!json.errors) {
+                    // setStatus(json.data.???);
                     // setListeners(json.data.???);
-                } else {
-                    throw new Error(json.errors[0].message);
-                }
-            })
-            .catch((e) => {
-                setErrorMessage(String(e));
-            });
-    }
-
-    function fetchBackgroundImages() {
-        CampfireApi.getBackgroundImages(lobbyId)
-            .then((res) => {
-                if (res) {
-                    return res.json();
-                } else {
-                    throw new Error("Response is null");
-                }
-            })
-            .then((json) => {
-                if (!json.errors) {
                     // setImages(json.data.???);
                 } else {
                     throw new Error(json.errors[0].message);
@@ -112,11 +93,6 @@ export default function Lobby(props: PropsType) {
             .catch((e) => {
                 setErrorMessage(String(e));
             });
-    }
-
-    useEffect(() => {
-        fetchListeners();
-        fetchBackgroundImages();
         return () => {
             // Unsubscribe from events
         };
@@ -151,10 +127,19 @@ export default function Lobby(props: PropsType) {
                 <div className="text-center w-full">Lobby Name</div>
                 <div>
                     <button
-                        className="bg-red-200 px-2 py-1 rounded-l-full w-16"
+                        className="bg-red-100 px-2 py-1 rounded-l-full w-20"
                         onClick={(e) => {
                             e.preventDefault();
                             handleStatusChange(status, 0);
+                        }}
+                    >
+                        Preparing
+                    </button>
+                    <button
+                        className="bg-red-200 px-2 py-1 w-16"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleStatusChange(status, 1);
                         }}
                     >
                         Talking
@@ -163,7 +148,7 @@ export default function Lobby(props: PropsType) {
                         className="bg-red-300 px-2 py-1 w-16"
                         onClick={(e) => {
                             e.preventDefault();
-                            handleStatusChange(status, 1);
+                            handleStatusChange(status, 2);
                         }}
                     >
                         Telling
@@ -172,14 +157,15 @@ export default function Lobby(props: PropsType) {
                         className="bg-red-400 px-2 py-1 rounded-r-full w-16"
                         onClick={(e) => {
                             e.preventDefault();
-                            handleStatusChange(status, 2);
+                            handleStatusChange(status, 3);
                         }}
                     >
                         Ending
                     </button>
                 </div>
                 <div className="text-center w-full text-xs">
-                    status: {["Talking", "Telling", "Ending"][status]}
+                    status:{" "}
+                    {["Preparing", "Talking", "Telling", "Ending"][status]}
                 </div>
             </div>
             {errorMessage !== "" ? (

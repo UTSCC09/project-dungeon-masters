@@ -119,19 +119,15 @@ export class CampfireApi extends BaseGraphqlApi {
         return this.graphQLCall(query, variables);
     };
 
-    static getListners = async (
-        campfireId: string,
-        responseFields = ["???"]
-    ) => {
-        let query = `????`;
-        let variables = {
-            campfireId,
-        };
-
-        return this.graphQLCall(query, variables);
-    };
-
-    static getBackgroundImages = async (
+    /**
+     *
+     * @param campfireId The id of the campfire.
+     * @param responseFields
+     * @returns The status of the campfire (preparing, telling, talking, ending).
+     *          A list of background images.
+     *          A list of listener ids.
+     */
+    static getCampfireStatusAndAssets = async (
         campfireId: string,
         responseFields = ["???"]
     ) => {
