@@ -1,18 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import "./App.css";
 import LobbyList from "./components/3d/LobbyList";
 
 import staticData from "./assets/staticData/lobbies";
 import { useCookies } from "react-cookie";
-import {UserApi} from "./api/userApi";
-import {CampfireApi, CampfireFields} from "./api/campfiresApi";
+import { UserApi } from "./api/userApi";
+import { CampfireApi, CampfireFields } from "./api/campfiresApi";
 
 function App() {
     const searchTextRef = useRef("");
     const [cookies, setCookie, removeCookie] = useCookies(["username"]);
     const [lobbies, setLobbies] = useState([]);
     const isLoggedin = cookies.username && cookies.username !== "";
+    const navigate = useNavigate();
 
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         e.preventDefault();
@@ -20,8 +21,16 @@ function App() {
         removeCookie("username");
     }
     function loadRecentLobbies() {
-        CampfireApi.queryCampfires(false, false, [CampfireFields.id, CampfireFields.ownerUsername, CampfireFields.title,
-            CampfireFields.description, CampfireFields.status, CampfireFields.followers, CampfireFields.thumbnail]).then((res) => {
+        CampfireApi.queryCampfires(false, false, [
+            CampfireFields.id,
+            CampfireFields.ownerUsername,
+            CampfireFields.title,
+            CampfireFields.description,
+            CampfireFields.status,
+            CampfireFields.followers,
+            CampfireFields.thumbnail,
+        ])
+            .then((res) => {
                 if (res) {
                     return res.json();
                 } else {
@@ -37,8 +46,7 @@ function App() {
                                 ownerId: item.ownerUsername,
                                 title: item.title,
                                 description: item.description,
-                                thumbnail: item.thumbnail
-                                // url: item.url
+                                thumbnail: item.thumbnail,
                             };
                         })
                     );
@@ -96,6 +104,7 @@ function App() {
             </nav>
             <LobbyList
                 lobbies={lobbies}
+                navigateFunc={navigate}
                 loadPrevFunc={() => {}}
                 loadNextFunc={() => {}}
             />

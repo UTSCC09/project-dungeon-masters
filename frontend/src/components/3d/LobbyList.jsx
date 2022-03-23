@@ -14,7 +14,12 @@ import {
 const cameraDefaultPos = [0.0, 0.2, 2.5];
 const frameSpacing = 2.5;
 
-export default function LobbyList({ lobbies, loadNextFunc, loadPrevFunc }) {
+export default function LobbyList({
+    lobbies,
+    loadNextFunc,
+    loadPrevFunc,
+    navigateFunc,
+}) {
     return (
         <div className="fixed m-0 p-0 w-full h-full">
             <Canvas
@@ -40,10 +45,11 @@ export default function LobbyList({ lobbies, loadNextFunc, loadPrevFunc }) {
                             <ambientLight intensity={5} />
                         </mesh>
                         <Frames
-                            images={lobbies}
+                            lobbies={lobbies}
                             loadNextFunc={loadNextFunc}
                             loadPrevFunc={loadPrevFunc}
                             scrollFactor={2.5 * (lobbies.length - 1)}
+                            navigateFunc={navigateFunc}
                         />
                     </ScrollControls>
                 </Suspense>
@@ -52,7 +58,7 @@ export default function LobbyList({ lobbies, loadNextFunc, loadPrevFunc }) {
     );
 }
 
-function Frames({ images, scrollFactor, ...props }) {
+function Frames({ lobbies, scrollFactor, navigateFunc, ...props }) {
     const ref = useRef(null);
     const clicked = useRef(null);
     const scroll = useScroll();
@@ -76,7 +82,7 @@ function Frames({ images, scrollFactor, ...props }) {
     });
     // Left and right motion of the entire list.
     useFrame(() => {
-        ref.current.position.x = -scroll.offset * (2.5 * (images.length - 1));
+        ref.current.position.x = -scroll.offset * (2.5 * (lobbies.length - 1));
     });
     return (
         <group
@@ -101,25 +107,27 @@ function Frames({ images, scrollFactor, ...props }) {
                     position={[-frameSpacing, 0, 0]}
                     loadPrevFunc={props.loadPrevFunc}
                     scrollFactor={scrollFactor}
-                    url="/prev2.png"
+                    thumbnail="/prev2.png"
                     {...props}
                 />
             ) : null}
-            {images.map((props, index) => (
+            {lobbies.map((props, index) => (
                 <Frame
                     key={props.campfireId}
                     index={index}
                     position={[index * frameSpacing, 0, 0]}
                     scrollFactor={scrollFactor}
+                    lobbyId={props.campfireId}
+                    navigateFunc={navigateFunc}
                     {...props}
                 />
             ))}
             {props.loadNextFunc ? (
                 <FrameTerminal
-                    index={images.length}
-                    position={[images.length * frameSpacing, 0, 0]}
+                    index={lobbies.length}
+                    position={[lobbies.length * frameSpacing, 0, 0]}
                     loadNextFunc={props.loadNextFunc}
-                    url="/next2.png"
+                    thumbnail="/next2.png"
                     scrollFactor={scrollFactor}
                     {...props}
                 />
@@ -131,9 +139,9 @@ function Frames({ images, scrollFactor, ...props }) {
 function Frame({
     index,
     ownerId,
+    lobbyId,
     title,
     description,
-    url,
     navigateFunc,
     scrollFactor,
     thumbnail,
@@ -223,7 +231,7 @@ function Frame({
                         ref={image}
                         raycast={() => null}
                         position={[0, 0, 0.7]}
-                        url={thumbnail == "" ?  "/assets/front.png": thumbnail}
+                        url={thumbnail || "/remove.png"}
                     />
                 </mesh>
             </mesh>
@@ -268,8 +276,7 @@ function Frame({
                         <button
                             className="bg-black text-white rounded-full px-4 py-1"
                             onClick={(e) => {
-                                // TODO: Setup navigation
-                                // navigateFunc("/")
+                                navigateFunc("/lobby/" + lobbyId);
                             }}
                         >
                             Join
@@ -281,7 +288,13 @@ function Frame({
     );
 }
 
-function FrameTerminal({ index, loadNextFunc, url, scrollFactor, ...props }) {
+function FrameTerminal({
+    index,
+    loadNextFunc,
+    thumbnail,
+    scrollFactor,
+    ...props
+}) {
     const groupRef = useRef();
     const scroll = useScroll();
     function linear(x) {
@@ -324,7 +337,7 @@ function FrameTerminal({ index, loadNextFunc, url, scrollFactor, ...props }) {
                     <Image
                         raycast={() => null}
                         position={[0, 0, 0.7]}
-                        url={url}
+                        url={thumbnail || "/remove.png"}
                     />
                 </mesh>
             </mesh>
