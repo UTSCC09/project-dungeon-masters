@@ -262,6 +262,7 @@ function ListenerUI(props: {
     const [images, setImages] = useState(staticImages);
     const [muted, setMuted] = useState(false);
     const [speakerMuted, setSpeakerMuted] = useState(false);
+    const [showTools, setShowTools] = useState(true);
 
     useEffect(() => {
         CampfireApi.getCampfireStatusAndAssets(lobbyId)
@@ -294,76 +295,101 @@ function ListenerUI(props: {
         <>
             <div>
                 <BackGround3D autoRotate={false} path={images[0]} />
-                <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row items-center justify-between">
-                    <div className="w-[15%] bg-gray-700 overflow-auto pr-6">
-                        {listeners.map((item, index) => {
-                            return (
-                                <div className="grid grid-cols-2 text-center">
-                                    {item.username}
-                                    <Slider
-                                        size="small"
-                                        defaultValue={70}
-                                        aria-label="Small"
-                                        valueLabelDisplay="auto"
-                                        onChange={(e, value) => {
-                                            // Handler volume change
-                                        }}
-                                    />
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="w-[20%] pr-6">
-                        <div className="grid grid-cols-2 grid-rows-2 text-center">
-                            Narrator
-                            <Slider
-                                size="small"
-                                defaultValue={70}
-                                aria-label="Small"
-                                valueLabelDisplay="auto"
-                                onChange={(e, value) => {
-                                    // Handler volume change
-                                }}
-                            />
-                            Sound Effects
-                            <Slider
-                                size="small"
-                                defaultValue={70}
-                                aria-label="Small"
-                                valueLabelDisplay="auto"
-                                onChange={(e, value) => {
-                                    // Handler volume change
-                                }}
-                            />
+                {showTools ? (
+                    <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row items-center justify-between">
+                        <div className="w-[15%] bg-gray-700 overflow-auto pr-6">
+                            {listeners.map((item, index) => {
+                                return (
+                                    <div className="grid grid-cols-2 text-center">
+                                        {item.username}
+                                        <Slider
+                                            size="small"
+                                            defaultValue={70}
+                                            aria-label="Small"
+                                            valueLabelDisplay="auto"
+                                            onChange={(e, value) => {
+                                                // Handler volume change
+                                            }}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
-                    </div>
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-row">
+                        <div className="w-[20%] pr-6">
+                            <div className="grid grid-cols-2 grid-rows-2 text-center">
+                                Narrator
+                                <Slider
+                                    size="small"
+                                    defaultValue={70}
+                                    aria-label="Small"
+                                    valueLabelDisplay="auto"
+                                    onChange={(e, value) => {
+                                        // Handler volume change
+                                    }}
+                                />
+                                Sound Effects
+                                <Slider
+                                    size="small"
+                                    defaultValue={70}
+                                    aria-label="Small"
+                                    valueLabelDisplay="auto"
+                                    onChange={(e, value) => {
+                                        // Handler volume change
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-row">
+                            <button
+                                className="bg-cover invert w-16 h-16 rounded-full border-solid border-4 border-black mx-4"
+                                style={{
+                                    backgroundImage: muted
+                                        ? `url(/mute.png)`
+                                        : `url(/microphone.png)`,
+                                }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setMuted(!muted);
+                                }}
+                            ></button>
+                            <button
+                                className="bg-cover invert w-16 h-16 mx-4"
+                                style={{
+                                    backgroundImage: speakerMuted
+                                        ? `url(/mute_speaker.png)`
+                                        : `url(/speaker.png)`,
+                                }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setSpeakerMuted(!speakerMuted);
+                                }}
+                            ></button>
+                        </div>
                         <button
-                            className="bg-cover invert w-16 h-16 rounded-full border-solid border-4 border-black mx-4"
+                            className="absolute top-0 right-0 bg-cover w-8 h-8 invert mr-6 mt-2"
                             style={{
-                                backgroundImage: muted
-                                    ? `url(/mute.png)`
-                                    : `url(/microphone.png)`,
+                                backgroundImage: `url(/arrow-down-sign-to-navigate.png)`,
                             }}
                             onClick={(e) => {
                                 e.preventDefault();
-                                setMuted(!muted);
-                            }}
-                        ></button>
-                        <button
-                            className="bg-cover invert w-16 h-16 mx-4"
-                            style={{
-                                backgroundImage: speakerMuted
-                                    ? `url(/mute_speaker.png)`
-                                    : `url(/speaker.png)`,
-                            }}
-                            onClick={(e) => {
-                                e.preventDefault();
-                                setSpeakerMuted(!speakerMuted);
+                                setShowTools(!showTools);
                             }}
                         ></button>
                     </div>
-                </div>
+                ) : (
+                    <div className="absolute right-0 bottom-0 bg-cover mr-6 bg-gray-900 rounded-t-xl px-4">
+                        <button
+                            className="invert bg-cover w-8 h-8"
+                            style={{
+                                backgroundImage: `url(/arrow-up-sign-to-navigate.png)`,
+                            }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setShowTools(!showTools);
+                            }}
+                        ></button>
+                    </div>
+                )}
             </div>
         </>
     );
