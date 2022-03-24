@@ -72,9 +72,6 @@ function App() {
                     ) : (
                         <Link to="/login">Login</Link>
                     )}
-                    {isLoggedin ? (
-                        <Link to="/lobby/12345">Test lobby</Link>
-                    ) : null}
                 </div>
                 <input
                     className="bg-gray-600 text-white flex-grow max-w-lg mx-8 w-72 px-4 rounded-full"
