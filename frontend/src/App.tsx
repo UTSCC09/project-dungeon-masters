@@ -97,9 +97,7 @@ function App() {
                             Log out
                         </a>
                     ) : null}
-                    {isLoggedin &&
-                    <Link to="/addCampfire">Lit Camp Fire</Link>
-                    }
+                    {isLoggedin && <Link to="/addCampfire">Lit Camp Fire</Link>}
                 </div>
             </nav>
             <LobbyList
