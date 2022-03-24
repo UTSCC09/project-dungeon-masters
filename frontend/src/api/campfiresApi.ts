@@ -14,8 +14,8 @@ export class CampfireApi extends BaseGraphqlApi {
 
         let variables = {
             owned: owned,
-            follower: follower
-        }
+            follower: follower,
+        };
 
         return this.graphQLCall(query, variables);
     };
@@ -119,15 +119,12 @@ export class CampfireApi extends BaseGraphqlApi {
         return this.graphQLCall(query, variables);
     };
 
-
     /**
      *
      * @param campfireId The id of the campfire.
      * @returns owner, follower, none
      */
-    static getCampfireRole = async (
-        campfireId: string
-    ) => {
+    static getCampfireRole = async (campfireId: string) => {
         let query = `query GetCampfireRole($campfireId: String) {
                         getCampfireRole(campfireId: $campfireId) 
                       }`;
@@ -145,10 +142,29 @@ export class CampfireApi extends BaseGraphqlApi {
      * @returns The status of the campfire (preparing, telling, talking, ending).
      *          A list of background images.
      *          A list of listener ids.
+     * Sample response:
+     * {
+     *   data: {
+     *     campfires: [
+     *       {
+     *         followers: ["userid1", "userid2"],
+     *         scenes: [
+     *           "http://.../pic1.jpg",
+     *           "http://.../pic2.jpg",
+     *         ],
+     *         status: "talking"
+     *       }
+     *     ]
+     *   }
+     * }
      */
     static getCampfireStatusAndAssets = async (
         campfireId: string,
-        responseFields = [CampfireFields.status, CampfireFields.scenes, CampfireFields.followers]
+        responseFields = [
+            CampfireFields.status,
+            CampfireFields.scenes,
+            CampfireFields.followers,
+        ]
     ) => {
         let query = `query QueryCampfires($campfireId: String) {
                         campfires(campfireId: $campfireId) {

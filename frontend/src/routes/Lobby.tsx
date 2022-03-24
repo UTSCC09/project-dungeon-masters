@@ -138,20 +138,6 @@ function NarratorView(props: {
                 }
             })
             .then((json) => {
-                // {
-                //   data: {
-                //     campfires: [
-                //       {
-                //         followers: [],
-                //         scenes: [
-                //           "http://.../pic1.jpg",
-                //           "http://.../pic2.jpg",
-                //         ],
-                //         status: "talking"
-                //       }
-                //     ]
-                //   }
-                // }
                 console.log(json);
                 if (!json.errors) {
                     setStatus(
@@ -274,7 +260,7 @@ function ListenerView(props: {
                             .map((item) => item.toLowerCase())
                             .indexOf(json.data.campfires[0].status)
                     );
-                    // setListeners(json.data.campfires[0].followers);
+                    setListeners(json.data.campfires[0].followers);
                     setImages(json.data.campfires[0].scenes);
                 } else {
                     throw new Error(json.errors[0].message);
