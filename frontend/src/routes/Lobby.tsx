@@ -6,25 +6,12 @@ import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 
 const staticListeners = [
-    {
-        // Can add more fields here.
-        username: "aquil",
-    },
-    {
-        username: "Artina",
-    },
-    {
-        username: "Wilson",
-    },
-    {
-        username: "Yiyang",
-    },
-    {
-        username: "Test1",
-    },
-    {
-        username: "Test2",
-    },
+    "aquil",
+    "Artina",
+    "Wilson",
+    "Yiyang",
+    "Test1",
+    "Test2",
 ];
 
 const staticImages = [
@@ -112,22 +99,28 @@ export default function Lobby(props: PropsType) {
                 </div>
             ) : null}
             {isNarrator ? (
-                <NarratorUI lobbyId={lobbyId} errorHandler={setErrorMessage} />
+                <NarratorView
+                    lobbyId={lobbyId}
+                    errorHandler={setErrorMessage}
+                />
             ) : (
-                <ListenerUI lobbyId={lobbyId} errorHandler={setErrorMessage} />
+                <ListenerView
+                    lobbyId={lobbyId}
+                    errorHandler={setErrorMessage}
+                />
             )}
         </div>
     );
 }
 
-function NarratorUI(props: {
+function NarratorView(props: {
     lobbyId: string;
     errorHandler: (message: string) => void;
 }) {
     const { lobbyId, errorHandler } = props;
     const [status, setStatus] = useState(0);
-    const [listeners, setListeners] = useState(staticListeners);
-    const [images, setImages] = useState(staticImages);
+    const [listeners, setListeners] = useState([]);
+    const [images, setImages] = useState([]);
     const [selected, setSelected] = useState(0);
 
     function handleStatusChange(oldStatus: number, newStatus: number) {
@@ -223,7 +216,7 @@ function NarratorUI(props: {
                     status: {statusIndex[status]}
                 </div>
             </div>
-            <div className="bg-green-200 absolute top-1/4 left-[80%] flex flex-col justify-center items-center max-h-72">
+            <div className="bg-green-200 absolute top-1/4 left-[80%] flex flex-col justify-center items-center max-h-72 rounded-lg">
                 <Listeners userList={listeners} />
             </div>
             <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row overflow-auto">
@@ -252,14 +245,14 @@ function NarratorUI(props: {
     );
 }
 
-function ListenerUI(props: {
+function ListenerView(props: {
     lobbyId: string;
     errorHandler: (message: string) => void;
 }) {
     const { lobbyId, errorHandler } = props;
     const [status, setStatus] = useState(0);
-    const [listeners, setListeners] = useState(staticListeners);
-    const [images, setImages] = useState(staticImages);
+    const [listeners, setListeners] = useState([]);
+    const [images, setImages] = useState([]);
     const [muted, setMuted] = useState(false);
     const [speakerMuted, setSpeakerMuted] = useState(false);
     const [showTools, setShowTools] = useState(true);
@@ -301,7 +294,7 @@ function ListenerUI(props: {
                             {listeners.map((item, index) => {
                                 return (
                                     <div className="grid grid-cols-2 text-center">
-                                        {item.username}
+                                        {item}
                                         <Slider
                                             size="small"
                                             defaultValue={70}
