@@ -8,14 +8,14 @@ export class CampfireApi extends BaseGraphqlApi {
     ) => {
         let query = `query QueryCampfires($owned: Boolean, $follower: Boolean) {
                         campfires(owned: $owned, follower: $follower) {
-                          ${CampfireApi.generateResponseFields(responseFields)}
+                          ${this.generateResponseFields(responseFields)}
                         }
                       }`;
 
         let variables = {
             owned: owned,
-            $follower: follower,
-        };
+            follower: follower
+        }
 
         return this.graphQLCall(query, variables);
     };
