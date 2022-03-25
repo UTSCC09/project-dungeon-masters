@@ -25,6 +25,7 @@ const saltRounds = 10;
 const cookie = require("cookie");
 
 const session = require("express-session");
+import "./websocket.js";
 
 app.use(bodyParser.urlencoded({ extended: false }));
 const multer = require("multer");
@@ -429,11 +430,9 @@ app.use("/graphql", (req, res, next) => {
 app.post("/api/images/", upload.single("picture"), function (req, res, next) {
     var obj = {
         img: {
-            data: fs.readFileSync(
-                join(__dirname + "/uploads/" + req.file.filename)
-            ),
+            data: Buffer.from(fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)).toString('base64'), 'base64'),
             contentType: req.file.mimetype,
-            path: req.file.path,
+            path: req.file.path
         },
         url: "",
     };

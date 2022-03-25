@@ -1,9 +1,13 @@
-import { Slider } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import { Slider, useRadioGroup } from "@mui/material";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CampfireApi } from "../api/campfiresApi";
 import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
+import {io, Socket} from "socket.io-client";
+import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp} from "../components/lobby/socketsInterfaces";
+//import "../components/lobby/socketsInterfaces";
+import Peer from "simple-peer";
 
 const staticListeners = [
     "aquil",
@@ -30,11 +34,32 @@ const statusIndex = ["Preparing", "Talking", "Telling", "Ending"];
 
 interface PropsType {}
 
+function PeerVideo(props: PeerVidProp){
+    const ref = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+        props.peer.on("stream", stream => {
+            ref.current!.srcObject = stream;
+        })
+    }, []);
+
+    return (
+        <video playsInline autoPlay ref={ref} />
+    );
+}
+
 export default function Lobby(props: PropsType) {
     const lobbyId = useParams().lobbyId || "";
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState("");
     const [isNarrator, setIsNarrator] = useState(false);
+
+    //for webRTC
+    const userStream = useRef<HTMLVideoElement>(null);
+    const [peers, setPeers] = useState<Peer.Instance[]>([]);
+    const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>();
+    const peersRef = useRef<peersRefType[]>([]); // array of socket id to a listener object
+    // also need lobbyID I think
 
     if (lobbyId === "") {
         setErrorMessage("Lobby ID is empty.");
@@ -43,6 +68,40 @@ export default function Lobby(props: PropsType) {
     function handleExitLobby() {
         // TODO: Send exit lobby request to server
         navigate("/");
+    }
+
+    function createPeer(userToSignal: string, callerId: string, stream: MediaStream){
+        //caller Id is the socket id of this client, userToSignal is the id of other users
+        const peer = new Peer({
+            initiator: true, // upon construction, a signal got sent out
+            trickle: false,
+            stream
+        });
+
+        peer.on("signal", signal => {
+            if(socketRef.current)
+            socketRef.current.emit("sendingsignal", {userToSignal, callerId, signal});
+        });
+
+        return peer;
+    }
+
+    function addPeer(incomingSignal: Peer.SignalData, callerId: string, stream: MediaStream){
+        // the person that joined the room notifies this client, and received the incomingSignal
+        // now the client send their signal back to the new joined user
+        const peer = new Peer({
+            initiator: false,
+            trickle: false,
+            stream,
+        })
+
+        peer.on("signal", signal => {
+            if(socketRef.current)
+            socketRef.current.emit("returningsignal", {signal, callerID: callerId});
+        })
+
+        peer.signal(incomingSignal);
+        return peer;
     }
 
     useEffect(() => {
@@ -59,6 +118,40 @@ export default function Lobby(props: PropsType) {
                 if (!json.errors) {
                     const role = json.data.getCampfireRole;
                     setIsNarrator(role === "owner");
+                    // create websocket between server and client when joining the room
+                    socketRef.current = io();
+                    navigator.mediaDevices.getUserMedia({video: false, audio: true}).then(stream =>{
+                        userStream.current!.srcObject = stream;
+                        if(socketRef.current){
+                            socketRef.current.emit("joinroom");
+                            socketRef.current.on("allusers", users => {
+                                users.forEach(userId => {
+                                    const peer = createPeer(userId, socketRef.current!.id, stream);
+                                    peersRef.current.push({
+                                        peerId: userId,
+                                        peer,
+                                    })
+                                    setPeers([...peers,peer]);
+                                });
+                            });
+
+                            // whenever a listener joins
+                            socketRef.current.on("userjoined", (payload) => {
+                                const peer = addPeer(payload.signal, payload.callerID, stream);
+                                peersRef.current.push({
+                                    peerId: payload.callerID,
+                                    peer,
+                                });
+
+                                setPeers([...peers, peer]);
+                            });
+
+                            socketRef.current.on("receivingreturnedsignal", payload => {
+                                const item = peersRef.current.find(p => p.peerId === payload.id);
+                                item?.peer.signal(payload.signal);
+                            });
+                        }
+                    });
                 } else {
                     throw new Error(json.errors[0].message);
                 }
@@ -85,6 +178,13 @@ export default function Lobby(props: PropsType) {
                     ></button>
                 </div>
             </nav>
+            {/* this client's call, where userStream is set */}
+            <video muted autoPlay playsInline ref={userStream}></video> 
+            {peers.map((peer, index) => {
+                return (
+                    <PeerVideo key={index} peer={peer} />
+                );
+            })}
             {errorMessage !== "" ? (
                 <div className="bg-red-200 absolute top-[30%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded">
                     <div>{errorMessage}</div>
@@ -123,6 +223,7 @@ function NarratorView(props: {
     const [images, setImages] = useState([]);
     const [selected, setSelected] = useState(0);
 
+
     function handleStatusChange(oldStatus: number, newStatus: number) {
         setStatus(newStatus);
         // TODO: Send status change to server
@@ -155,6 +256,7 @@ function NarratorView(props: {
                 errorHandler(String(e));
             });
     }, []);
+
     return (
         <>
             <BackGround3D autoRotate={false} path={images[selected]} />
