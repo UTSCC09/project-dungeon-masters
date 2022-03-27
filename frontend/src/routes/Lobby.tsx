@@ -5,7 +5,7 @@ import { CampfireApi } from "../api/campfiresApi";
 import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 import {io, Socket} from "socket.io-client";
-import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp} from "../components/lobby/socketsInterfaces";
+import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp, ReturnPayload} from "../components/lobby/socketsInterfaces";
 //import "../components/lobby/socketsInterfaces";
 import Peer from "simple-peer";
 
@@ -39,12 +39,13 @@ function PeerVideo(props: PeerVidProp){
 
     useEffect(() => {
         props.peer.on("stream", stream => {
+            console.log("streaming", stream);
             ref.current!.srcObject = stream;
         })
     }, []);
 
     return (
-        <video playsInline autoPlay ref={ref} />
+        <video hidden autoPlay playsInline ref={ref}></video> 
     );
 }
 
@@ -77,6 +78,7 @@ export default function Lobby(props: PropsType) {
             trickle: false,
             stream
         });
+        console.log("create other user peer for this client, stream",stream);
 
         peer.on("signal", signal => {
             if(socketRef.current)
@@ -94,6 +96,7 @@ export default function Lobby(props: PropsType) {
             trickle: false,
             stream,
         })
+        console.log("add new join peer for this client, stream",stream);
 
         peer.on("signal", signal => {
             if(socketRef.current)
@@ -118,14 +121,23 @@ export default function Lobby(props: PropsType) {
                 if (!json.errors) {
                     const role = json.data.getCampfireRole;
                     setIsNarrator(role === "owner");
+                    console.log("1. setting io, initiating connection");
                     // create websocket between server and client when joining the room
-                    socketRef.current = io();
+                    socketRef.current = io("http://localhost:4000/", 
+                        {withCredentials: true,
+                        extraHeaders:{
+                           "cfstorylobby": lobbyId
+                        }
+                    });
+                    socketRef.current.connect();
                     navigator.mediaDevices.getUserMedia({video: false, audio: true}).then(stream =>{
                         userStream.current!.srcObject = stream;
+                        console.log("my stream", userStream.current!.srcObject);
                         if(socketRef.current){
-                            socketRef.current.emit("joinroom");
+                            socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
                                 users.forEach(userId => {
+                                    //userid is the socket id for that client
                                     const peer = createPeer(userId, socketRef.current!.id, stream);
                                     peersRef.current.push({
                                         peerId: userId,
@@ -137,6 +149,7 @@ export default function Lobby(props: PropsType) {
 
                             // whenever a listener joins
                             socketRef.current.on("userjoined", (payload) => {
+                                console.log("user joined, adding this new user in");
                                 const peer = addPeer(payload.signal, payload.callerID, stream);
                                 peersRef.current.push({
                                     peerId: payload.callerID,
@@ -179,7 +192,7 @@ export default function Lobby(props: PropsType) {
                 </div>
             </nav>
             {/* this client's call, where userStream is set */}
-            <video muted autoPlay playsInline ref={userStream}></video> 
+            <video hidden muted autoPlay playsInline ref={userStream}></video> 
             {peers.map((peer, index) => {
                 return (
                     <PeerVideo key={index} peer={peer} />

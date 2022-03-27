@@ -30,7 +30,7 @@ io.on('connection', socket => {
     });
 
     socket.on("sendingsignal", payload => {
-        io.to(payload.userToSignal).emit('userjoined', { signal: payload.signal, callerID: payload.callerID });
+        io.to(payload.userToSignal).emit('userjoined', { signal: payload.signal, callerID: payload.callerID , stream:payload.stream});
     });
 
     socket.on("returningsignal", payload => {

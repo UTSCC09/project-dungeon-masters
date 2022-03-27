@@ -24,8 +24,35 @@ const saltRounds = 10;
 
 const cookie = require("cookie");
 
+const http = require("http");
+const { resolve, join } = require("path");
+const { hash } = require("bcrypt");
+const { aggregate } = require("./models/userModel");
+const PORT = 4000;
+const server = http.createServer(app);
+
 const session = require("express-session");
-import "./websocket.js";
+const {Server} = require("socket.io");
+const io = new Server(server, {
+    cors:{
+        credentials: true,
+        origin: function (origin, callback) {
+            // allow requests with no origin
+            // (like mobile apps or curl requests)
+            if (!origin){
+                return callback(null, true);
+            }
+            if (whitelist.indexOf(origin) === -1) {
+                var msg =
+                    "The CORS policy for this site does not " +
+                    "allow access from the specified Origin.";
+                return callback(new Error(msg), false);
+            }
+            return callback(null, true);
+        },
+        allowedHeaders: ["cfstorylobby"],
+    }
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 const multer = require("multer");
@@ -404,7 +431,9 @@ var corsOptions = {
     origin: function (origin, callback) {
         // allow requests with no origin
         // (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+        if (!origin){
+            return callback(null, true);
+        }
         if (whitelist.indexOf(origin) === -1) {
             var msg =
                 "The CORS policy for this site does not " +
@@ -475,13 +504,58 @@ app.get("/api/images/picture/:id", function (req, res, next) {
     });
 });
 
-const http = require("http");
-const { resolve, join } = require("path");
-const { hash } = require("bcrypt");
-const { aggregate } = require("./models/userModel");
-const PORT = 4000;
+// switch to mongoDB once working
+// user stores for each room, the socket ids for a user
+const users = {};
 
-http.createServer(app).listen(PORT, function (err) {
+// each socket key refers to a roomID value
+const socketToRoom = {};
+
+//app.options('*',cors());
+
+// on is like an event listener, listening an emit event from client
+// emit is pushing an event to trigger on
+io.on('connection', socket => {
+    socket.on("joinroom", lobbyId => {
+        if (users[lobbyId]) {
+            const length = users[lobbyId].length;
+            if (length === 10) {
+                socket.emit("roomfull");
+                return;
+            }
+            users[lobbyId].push(socket.id);
+        } else {
+            users[lobbyId] = [socket.id];
+        }
+        socketToRoom[socket.id] = lobbyId;
+        // gets ids that are not the socketid, i think socket.id is there when room is created?
+        const usersInThisRoom = users[lobbyId].filter(id => id !== socket.id);
+
+        socket.emit("allusers", usersInThisRoom);
+    });
+
+    socket.on("sendingsignal", payload => {
+        io.to(payload.userToSignal).emit('userjoined', { signal: payload.signal, callerID: payload.callerID});
+    });
+
+    socket.on("returningsignal", payload => {
+        io.to(payload.callerID).emit('receivingreturnedsignal', { signal: payload.signal, id: socket.id });
+    });
+
+    socket.on('disconnect', () => {
+        // disconnects socket, basically remove socket id from room
+        const lobbyId = socketToRoom[socket.id];
+        let lobby = users[lobbyId];
+        if (lobby) {
+            lobby = lobby.filter(id => id !== socket.id);
+            users[lobbyId] = lobby;
+        }
+    });
+
+});
+
+
+server.listen(PORT, function (err) {
     if (err) console.log(err);
     else console.log("HTTP server on http://localhost:%s", PORT);
 });

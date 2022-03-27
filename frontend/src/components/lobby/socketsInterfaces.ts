@@ -12,9 +12,9 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
     hello: () => void;
     sendingsignal: (payload: SendPayload) => any;
-    returningsignal: (payload: ReceivePayload) => void;
+    returningsignal: (payload: ReturnPayload) => void;
     disconnect: () => void;
-    joinroom: () => any;
+    joinroom: (lobbyId: string) => any;
   }
   
 export interface InterServerEvents {
@@ -36,11 +36,17 @@ export interface SendPayload {
 export interface ReceivePayload {
     signal: Peer.SignalData;
     callerID: string;
+    stream: MediaStream;
 }
 
 export interface peersRefType {
     peerId: string;
     peer: Peer.Instance;
+}
+
+export interface ReturnPayload {
+    signal: Peer.SignalData;
+    callerID: string;
 }
 
 export interface ReceiveReturnPayload {
