@@ -4,7 +4,8 @@
   "description": "The backend of the TRPG tool Genesis",
   "main": "app.js",
   "scripts": {
-    "run": "export GOOGLE_APPLICATION_CREDENTIALS=campfire-344520-d1dfd5ebeeb2.json && nodemon app.js"
+    "run": "export GOOGLE_APPLICATION_CREDENTIALS=campfire-344520-d1dfd5ebeeb2.json && nodemon app.js",
+	"runw": "set GOOGLE_APPLICATION_CREDENTIALS=campfire-344520-d1dfd5ebeeb2.json && nodemon app.js"
   },
   "repository": {
     "type": "git",
