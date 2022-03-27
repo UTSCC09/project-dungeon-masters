@@ -528,9 +528,9 @@ io.on('connection', socket => {
             users[lobbyId] = [socket.id];
         }
         socketToRoom[socket.id] = lobbyId;
-        // gets ids that are not the socketid, i think socket.id is there when room is created?
+        // gets ids that are not the socketid, users that are not yourself
         const usersInThisRoom = users[lobbyId].filter(id => id !== socket.id);
-
+        console.log(users);
         socket.emit("allusers", usersInThisRoom);
     });
 

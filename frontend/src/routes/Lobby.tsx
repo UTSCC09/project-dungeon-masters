@@ -39,13 +39,13 @@ function PeerVideo(props: PeerVidProp){
 
     useEffect(() => {
         props.peer.on("stream", stream => {
-            console.log("streaming", stream);
             ref.current!.srcObject = stream;
+            console.log("streaming", ref.current?.srcObject);
         })
     }, []);
 
     return (
-        <video hidden autoPlay playsInline ref={ref}></video> 
+        <video className="h-20 w-20" autoPlay playsInline ref={ref}></video> 
     );
 }
 
@@ -130,12 +130,13 @@ export default function Lobby(props: PropsType) {
                         }
                     });
                     socketRef.current.connect();
-                    navigator.mediaDevices.getUserMedia({video: false, audio: true}).then(stream =>{
+                    navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream =>{
                         userStream.current!.srcObject = stream;
                         console.log("my stream", userStream.current!.srcObject);
                         if(socketRef.current){
                             socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
+                                let temppeers = [];
                                 users.forEach(userId => {
                                     //userid is the socket id for that client
                                     const peer = createPeer(userId, socketRef.current!.id, stream);
@@ -143,8 +144,9 @@ export default function Lobby(props: PropsType) {
                                         peerId: userId,
                                         peer,
                                     })
-                                    setPeers([...peers,peer]);
+                                    temppeers.push(peer);
                                 });
+                                setPeers(peers);
                             });
 
                             // whenever a listener joins
@@ -156,10 +158,11 @@ export default function Lobby(props: PropsType) {
                                     peer,
                                 });
 
-                                setPeers([...peers, peer]);
+                                setPeers(users => [...users, peer]);
                             });
 
                             socketRef.current.on("receivingreturnedsignal", payload => {
+                                // send the signal back to caller to complete handshake
                                 const item = peersRef.current.find(p => p.peerId === payload.id);
                                 item?.peer.signal(payload.signal);
                             });
@@ -192,7 +195,7 @@ export default function Lobby(props: PropsType) {
                 </div>
             </nav>
             {/* this client's call, where userStream is set */}
-            <video hidden muted autoPlay playsInline ref={userStream}></video> 
+            <video className="h-20 w-20" muted autoPlay playsInline ref={userStream}></video> 
             {peers.map((peer, index) => {
                 return (
                     <PeerVideo key={index} peer={peer} />
