@@ -15,6 +15,7 @@ function App() {
     const isLoggedin = cookies.username && cookies.username !== "";
     const navigate = useNavigate();
 
+
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         e.preventDefault();
         UserApi.signOut();

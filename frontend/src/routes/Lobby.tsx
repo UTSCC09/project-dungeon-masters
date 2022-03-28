@@ -120,7 +120,7 @@ function NarratorView(props: {
     const { lobbyId, errorHandler } = props;
     const [status, setStatus] = useState(0);
     const [listeners, setListeners] = useState([]);
-    const [images, setImages] = useState([]);
+    const [images, setImages] = useState<Array<string>>([]);
     const [selected, setSelected] = useState(0);
 
     function handleStatusChange(oldStatus: number, newStatus: number) {
@@ -146,7 +146,14 @@ function NarratorView(props: {
                             .indexOf(json.data.campfires[0].status)
                     );
                     setListeners(json.data.campfires[0].followers);
-                    setImages(json.data.campfires[0].scenes);
+                    setImages((images) => {
+                        let imgs:Array<string> = [];
+                        json.data.campfires[0].scenes.map((item:string)=>{
+                            let imgURL = process.env.REACT_APP_BACKENDURL + item;
+                            imgs.push(imgURL);
+                        });
+                        return imgs;
+                    });
                 } else {
                     throw new Error(json.errors[0].message);
                 }
@@ -238,7 +245,7 @@ function ListenerView(props: {
     const { lobbyId, errorHandler } = props;
     const [status, setStatus] = useState(0);
     const [listeners, setListeners] = useState([]);
-    const [images, setImages] = useState([]);
+    const [images, setImages] = useState<Array<string>>([]);
     const [muted, setMuted] = useState(false);
     const [speakerMuted, setSpeakerMuted] = useState(false);
     const [showTools, setShowTools] = useState(true);
@@ -261,7 +268,15 @@ function ListenerView(props: {
                             .indexOf(json.data.campfires[0].status)
                     );
                     setListeners(json.data.campfires[0].followers);
-                    setImages(json.data.campfires[0].scenes);
+                    console.log(json.data.campfires[0].scenes);
+                    setImages((images) => {
+                        let imgs:Array<string> = [];
+                        json.data.campfires[0].scenes.map((item:string)=>{
+                            let imgURL = process.env.REACT_APP_BACKENDURL + item;
+                            imgs.push(imgURL);
+                        });
+                        return imgs;
+                    });
                 } else {
                     throw new Error(json.errors[0].message);
                 }

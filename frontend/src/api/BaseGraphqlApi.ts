@@ -1,6 +1,6 @@
 export class BaseGraphqlApi {
 
-    protected static graphQLCall = async (query: string, variables: {}, endPoint: RequestInfo = "http://localhost:4000/graphql/") => {
+    protected static graphQLCall = async (query: string, variables: {}, endPoint: RequestInfo = process.env.REACT_APP_BACKENDURL + "/graphql/") => {
         return fetch(endPoint, {
             method: "POST",
             headers: {

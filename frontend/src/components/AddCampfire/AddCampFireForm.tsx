@@ -134,7 +134,7 @@ export function AddCampFireForm() {
                 status: CFStatus.TALKING,
                 private: campfire.invitation,
                 passcode: campfire.invitation ? campfire.password : "",
-                thumbnail: res ? "http://localhost:4000" + res.url : "",
+                thumbnail: res ? res.url : "",
                 soundtrack: [],
                 scenes: photos,
             };

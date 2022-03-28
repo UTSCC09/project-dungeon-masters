@@ -231,7 +231,7 @@ function Frame({
                         ref={image}
                         raycast={() => null}
                         position={[0, 0, 0.7]}
-                        url={thumbnail || "/remove.png"}
+                        url={thumbnail ? process.env.REACT_APP_BACKENDURL + thumbnail : "/remove.png"}
                     />
                 </mesh>
             </mesh>
