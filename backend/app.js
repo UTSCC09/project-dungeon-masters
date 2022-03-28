@@ -409,6 +409,8 @@ const schema = new GraphQLSchema({
 var whitelist = [
     "http://localhost:3000",
     "http://localhost:4000" /** other domains if any */,
+    "http://c09-siniat.utsc-labs.utoronto.ca:4000",
+    "http://c09-siniat.utsc-labs.utoronto.ca"
 ];
 
 var corsOptions = {
