@@ -3,6 +3,8 @@ const fs = require("fs");
 const express = require("express");
 
 const expressGraphQL = require("express-graphql").graphqlHTTP;
+const GraphQLJSON = require('graphql-type-json').GraphQLJSON
+
 const {
     GraphQLSchema,
     GraphQLObjectType,
@@ -134,6 +136,8 @@ const signOutUser = (context) => {
     );
 };
 
+const {naturalLanguage} = require("./CampFireSound/googleNLApi");
+
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
     description: "Root query",
@@ -187,6 +191,15 @@ const RootQueryType = new GraphQLObjectType({
                 if (campfireDetails[0].ownerUsername === context.session.username) return 'owner';
                 if (campfireDetails[0].followers.includes(context.session.username)) return 'follower';
                 return 'none';
+            }
+        },
+        analyzeText: { //TODO: Remove, just for developing
+            type: GraphQLJSON,
+            args: {
+                text: {type: GraphQLString}
+            },
+            resolve: async (source, args, context) => {
+                return naturalLanguage.syntaxAnalysis(args.text);
             }
         }
     }),
@@ -424,6 +437,8 @@ const schema = new GraphQLSchema({
 var whitelist = [
     "http://localhost:3000",
     "http://localhost:4000" /** other domains if any */,
+    "http://c09-siniat.utsc-labs.utoronto.ca:4000",
+    "http://c09-siniat.utsc-labs.utoronto.ca"
 ];
 
 var corsOptions = {

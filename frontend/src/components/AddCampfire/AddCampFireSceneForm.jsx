@@ -30,7 +30,6 @@ export function AddCampFireSceneForm(props) {
   const [img, setImg] = useState(null);
 
   function handleDragStart(event){
-    console.log(photos);
     setActiveId(event.active.id);
     setImg(event.active.id);
   }
@@ -40,8 +39,8 @@ export function AddCampFireSceneForm(props) {
 
     if (active.id !== over.id) {
       setPhotos((photos) => {
-        const oldIndex = photos.indexOf(active.id);
-        const newIndex = photos.indexOf(over.id);
+        const oldIndex = photos.indexOf(active.id.replace(process.env.REACT_APP_BACKENDURL,""));
+        const newIndex = photos.indexOf(over.id.replace(process.env.REACT_APP_BACKENDURL,""));
 
         return arrayMove(photos, oldIndex, newIndex);
       });
@@ -60,7 +59,7 @@ export function AddCampFireSceneForm(props) {
   const handleAddImage = (e) => {
     if( e.currentTarget.files !== null){
       api.addImage(e.currentTarget.files[0]).then(res => {
-        setPhotos([...photos, "http://localhost:4000" + res.url]);
+        setPhotos([...photos,res.url]);
         }).catch((error)=>{
           setErrorMessage(error);
         });
@@ -114,7 +113,7 @@ const handleRemoveScene = (img_idx) => {
                   <CampfireSceneGrid>
                   <SortableContext items={photos} strategy={rectSortingStrategy}>
                     {photos.map((item, index) => (
-                      <SortableScenePhoto key={item} url={item} index={index} deletePhoto={() => handleRemoveScene(index)}/>
+                      <SortableScenePhoto key={item} url={process.env.REACT_APP_BACKENDURL + item} index={index} deletePhoto={() => handleRemoveScene(index)}/>
                     ))}
                     </SortableContext>
                     <div className="h-52 w-full bg-slate-400 btn flex place-items-center">

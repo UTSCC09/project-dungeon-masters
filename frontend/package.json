@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@dnd-kit/core": "^5.0.3",
     "@dnd-kit/sortable": "^6.0.1",
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
@@ -17,6 +18,7 @@
     "@types/node": "^16.11.26",
     "@types/react-dom": "^17.0.11",
     "base64-arraybuffer": "^1.0.2",
+    "dotenv": "^16.0.0",
     "react": "^17.0.2",
     "react-cookie": "^4.1.1",
     "react-dom": "^17.0.2",

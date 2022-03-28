@@ -54,7 +54,7 @@ export const api = (function(){
     var module = {};
     
     module.addImage = (picture) => {
-        return sendFilesPromise("POST", "http://localhost:4000/api/images/", {picture:picture});
+        return sendFilesPromise("POST", process.env.REACT_APP_BACKENDURL + "/api/images/", {picture:picture});
     };
     // add an image to the database
     // module.addImage = function(picture, callback){
