@@ -7,6 +7,7 @@ export interface ServerToClientEvents {
     allusers: (users:string[]) => any;
     userjoined: (payload: ReceivePayload) => any;
     receivingreturnedsignal: (payload: ReceiveReturnPayload) => any;
+    userleft: (id: string) => any;
   }
   
 export interface ClientToServerEvents {
@@ -28,7 +29,7 @@ export interface SocketData {
 
 export interface SendPayload {
     userToSignal: string; // which users to send signal to
-    callerId: string; // the 
+    callerID: string; // the 
     signal: Peer.SignalData;
 
 }

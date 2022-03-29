@@ -546,6 +546,7 @@ io.on('connection', socket => {
         // gets ids that are not the socketid, users that are not yourself
         const usersInThisRoom = users[lobbyId].filter(id => id !== socket.id);
         console.log(users);
+        console.log(usersInThisRoom);
         socket.emit("allusers", usersInThisRoom);
     });
 
@@ -565,6 +566,7 @@ io.on('connection', socket => {
             lobby = lobby.filter(id => id !== socket.id);
             users[lobbyId] = lobby;
         }
+        socket.broadcast.emit('userleft', socket.id);
     });
 
 });

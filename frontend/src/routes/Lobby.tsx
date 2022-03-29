@@ -40,12 +40,12 @@ function PeerVideo(props: PeerVidProp){
     useEffect(() => {
         props.peer.on("stream", stream => {
             ref.current!.srcObject = stream;
-            console.log("streaming", ref.current?.srcObject);
         })
-    }, []);
+    });
 
     return (
-        <video className="h-20 w-20" autoPlay playsInline ref={ref}></video> 
+
+            <video className="h-10 w-20" autoPlay playsInline ref={ref}></video> 
     );
 }
 
@@ -57,9 +57,9 @@ export default function Lobby(props: PropsType) {
 
     //for webRTC
     const userStream = useRef<HTMLVideoElement>(null);
-    const [peers, setPeers] = useState<Peer.Instance[]>([]);
+    const [peers, setPeers] = useState<Array<peersRefType>>([]);
     const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>();
-    const peersRef = useRef<peersRefType[]>([]); // array of socket id to a listener object
+    const peersRef = useRef<Array<peersRefType>>([]); // array of socket id to a listener object
     // also need lobbyID I think
 
     if (lobbyId === "") {
@@ -68,6 +68,7 @@ export default function Lobby(props: PropsType) {
 
     function handleExitLobby() {
         // TODO: Send exit lobby request to server
+        socketRef.current?.disconnect();
         navigate("/");
     }
 
@@ -78,11 +79,10 @@ export default function Lobby(props: PropsType) {
             trickle: false,
             stream
         });
-        console.log("create other user peer for this client, stream",stream);
 
         peer.on("signal", signal => {
             if(socketRef.current)
-            socketRef.current.emit("sendingsignal", {userToSignal, callerId, signal});
+            socketRef.current.emit("sendingsignal", {userToSignal,callerID: callerId, signal});
         });
 
         return peer;
@@ -94,7 +94,7 @@ export default function Lobby(props: PropsType) {
         const peer = new Peer({
             initiator: false,
             trickle: false,
-            stream,
+            stream
         })
         console.log("add new join peer for this client, stream",stream);
 
@@ -121,9 +121,8 @@ export default function Lobby(props: PropsType) {
                 if (!json.errors) {
                     const role = json.data.getCampfireRole;
                     setIsNarrator(role === "owner");
-                    console.log("1. setting io, initiating connection");
                     // create websocket between server and client when joining the room
-                    socketRef.current = io("http://localhost:4000/", 
+                    socketRef.current = io(process.env.REACT_APP_BACKENDURL? process.env.REACT_APP_BACKENDURL: "/" , 
                         {withCredentials: true,
                         extraHeaders:{
                            "cfstorylobby": lobbyId
@@ -136,7 +135,7 @@ export default function Lobby(props: PropsType) {
                         if(socketRef.current){
                             socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
-                                let temppeers = [];
+                                let temppeers:peersRefType[] = [];
                                 users.forEach(userId => {
                                     //userid is the socket id for that client
                                     const peer = createPeer(userId, socketRef.current!.id, stream);
@@ -144,9 +143,12 @@ export default function Lobby(props: PropsType) {
                                         peerId: userId,
                                         peer,
                                     })
-                                    temppeers.push(peer);
+                                    temppeers.push({
+                                        peerId: userId,
+                                        peer,
+                                    });
                                 });
-                                setPeers(peers);
+                                setPeers(temppeers);
                             });
 
                             // whenever a listener joins
@@ -157,8 +159,12 @@ export default function Lobby(props: PropsType) {
                                     peerId: payload.callerID,
                                     peer,
                                 });
-
-                                setPeers(users => [...users, peer]);
+                                setPeers(peers => {
+                                    if (peers){
+                                        return [...peers, {peerId: payload.callerID, peer}];
+                                    }else{
+                                       return [{peerId: payload.callerID, peer}]; 
+                                    }});
                             });
 
                             socketRef.current.on("receivingreturnedsignal", payload => {
@@ -166,6 +172,19 @@ export default function Lobby(props: PropsType) {
                                 const item = peersRef.current.find(p => p.peerId === payload.id);
                                 item?.peer.signal(payload.signal);
                             });
+
+                            socketRef.current.on("userleft", id => {
+                                const peerObj = peersRef.current.find(p => p.peerId === id);
+                                if(peerObj) {
+                                    // destroy the peer session
+                                    peerObj.peer.destroy();
+                                }
+                                // remove the destroyed peer
+                                const peers = peersRef.current.filter(p => p.peerId !== id);
+                                peersRef.current = peers;
+
+                                setPeers(peers);
+                            })
                         }
                     });
                 } else {
@@ -196,9 +215,9 @@ export default function Lobby(props: PropsType) {
             </nav>
             {/* this client's call, where userStream is set */}
             <video className="h-20 w-20" muted autoPlay playsInline ref={userStream}></video> 
-            {peers.map((peer, index) => {
+            {peers.map((peer) => {
                 return (
-                    <PeerVideo key={index} peer={peer} />
+                    <PeerVideo key={peer.peerId} peer={peer.peer} />
                 );
             })}
             {errorMessage !== "" ? (
