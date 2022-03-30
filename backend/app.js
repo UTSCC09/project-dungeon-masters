@@ -200,7 +200,7 @@ const RootQueryType = new GraphQLObjectType({
                 text: {type: GraphQLString}
             },
             resolve: async (source, args, context) => {
-                return naturalLanguage.syntaxAnalysis(args.text);
+                return soundFXCaller.determineSFXCalls(args.text);
             }
         }
     }),
@@ -569,7 +569,7 @@ io.on('connection', socket => {
     socket.on('disconnect', () => {
         // disconnects socket, basically remove socket id from room
         // if disconnecting a follower
-        
+
         Campfire.findOneAndUpdate({ followers: {socketId:socket.id }}, { followers: {socketId: ""} }, function(err, campfire){
             socket.broadcast.emit('userleft', socket.id);
         });
