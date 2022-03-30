@@ -108,13 +108,13 @@ const {
 
 const Image = require("./models/imageModel");
 
-const isAuthenticated = (context) => {
-    if (!context.session.username) throw new Error("Not Authenticated");
+const isAuthenticated = (req, res, next) => {
+    if (!req.session.username) return res.status(401).end("access denied");
 };
 
-const signInUser = (context, user) => {
-    context.session.username = user.username.trim();
-    context.res.setHeader(
+const signInUser = (req, res, user) => {
+    req.session.username = user.username.trim();
+    res.setHeader(
         "Set-Cookie",
         cookie.serialize("username", user.username, {
             path: "/",
@@ -125,9 +125,9 @@ const signInUser = (context, user) => {
     );
 };
 
-const signOutUser = (context) => {
-    context.session.destroy();
-    context.res.setHeader(
+const signOutUser = (req, res) => {
+    req.session.destroy();
+    res.setHeader(
         "Set-Cookie",
         cookie.serialize("username", "", {
             path: "/",
@@ -145,7 +145,6 @@ const RootQueryType = new GraphQLObjectType({
         users: {
             type: new GraphQLList(UserType),
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return User.find({
                     username: {
                         $in: context.session.username,
@@ -161,7 +160,6 @@ const RootQueryType = new GraphQLObjectType({
                 follower: { type: GraphQLBoolean },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 if (args.campfireId !== undefined && args.campfireId !== '') return [Campfire.findById(args.campfireId)];
 
                 let filter = (owned, follower) => {
@@ -186,7 +184,6 @@ const RootQueryType = new GraphQLObjectType({
                 campfireId: {type: GraphQLString},
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 let campfireDetails = await Campfire.find({_id: args.campfireId});
                 if (campfireDetails[0].ownerUsername === context.session.username) return 'owner';
                 if (campfireDetails[0].followers.includes(context.session.username)) return 'follower';
@@ -209,80 +206,12 @@ const RootMutationType = new GraphQLObjectType({
     name: "Mutation",
     description: "Root Mutation",
     fields: () => ({
-        signUp: {
-            type: UserType,
-            args: {
-                username: { type: GraphQLString },
-                password: { type: GraphQLString },
-            },
-            resolve: async (source, args, context) => {
-                const hashedPassword = await new Promise((resolve, reject) => {
-                    bcrypt.genSalt(saltRounds, (err, salt) => {
-                        bcrypt.hash(args.password.trim(), salt, (err, hash) => {
-                            if (err) reject(err);
-                            resolve(hash);
-                        });
-                    });
-                });
-
-                let user = await User.create({
-                    username: args.username,
-                    password: hashedPassword,
-                    profilePicture: "",
-                    description: "",
-                    socialMedia: {
-                        twitter: "",
-                        instagram: "",
-                    },
-                });
-
-                signInUser(context, user);
-
-                return user;
-            },
-        },
-        signIn: {
-            type: UserType,
-            args: {
-                username: { type: GraphQLString },
-                password: { type: GraphQLString },
-            },
-            resolve: async (source, args, context) => {
-                const userDocs = await User.find({
-                    username: args.username.trim(),
-                });
-                if (userDocs === undefined || userDocs[0] === undefined)
-                    throw new Error("User not found");
-
-                let user = userDocs[0];
-                let validPass = await bcrypt.compare(
-                    args.password.trim(),
-                    user.password
-                );
-
-                if (validPass) {
-                    signInUser(context, user);
-                } else {
-                    throw new Error("Invalid Password");
-                }
-
-                return user;
-            },
-        },
-        signOut: {
-            type: UserType,
-            resolve: async (source, args, context) => {
-                signOutUser(context);
-                return new User();
-            },
-        },
         modifyUser: {
             type: UserType,
             args: {
                 userData: { type: UserInputType },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return User.findOneAndUpdate(
                     { username: context.session.username },
                     {
@@ -298,7 +227,6 @@ const RootMutationType = new GraphQLObjectType({
         deleteUser: {
             type: UserType,
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 try {
                     await Campfire.updateMany(
                         {},
@@ -315,8 +243,6 @@ const RootMutationType = new GraphQLObjectType({
                         username: context.session.username,
                     });
 
-                    signOutUser(context);
-
                     return deletedUser;
                 } catch (e) {
                     return e;
@@ -329,7 +255,6 @@ const RootMutationType = new GraphQLObjectType({
                 campfireData: { type: CampfireInputType },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return await Campfire.create({
                     ownerUsername: context.session.username,
                     title: args.campfireData.title,
@@ -351,7 +276,6 @@ const RootMutationType = new GraphQLObjectType({
                 campfireData: { type: CampfireInputType },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return Campfire.findOneAndUpdate(
                     {
                         _id: args.campfireId,
@@ -373,7 +297,6 @@ const RootMutationType = new GraphQLObjectType({
                 usernames: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return Campfire.findOneAndUpdate(
                     {
                         _id: args.campfireId,
@@ -397,7 +320,6 @@ const RootMutationType = new GraphQLObjectType({
                 usernames: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return Campfire.findOneAndUpdate(
                     {
                         _id: args.campfireId,
@@ -418,7 +340,6 @@ const RootMutationType = new GraphQLObjectType({
                 campfireId: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
-                isAuthenticated(context);
                 return Campfire.findOneAndDelete({
                     _id: args.campfireId,
                     ownerUsername: context.session.username,
@@ -459,7 +380,77 @@ var corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+
+app.post('/signup/', async function (req, res, next) {
+    let username = req.body.username;
+    let password = req.body.password;
+
+    const hashedPassword = await new Promise((resolve, reject) => {
+        bcrypt.genSalt(saltRounds, (err, salt) => {
+            bcrypt.hash(password.trim(), salt, (err, hash) => {
+                if (err) reject(err);
+                resolve(hash);
+            });
+        });
+    });
+
+    let user;
+    try {
+        user = await User.create({
+            username: username,
+            password: hashedPassword,
+            profilePicture: "",
+            description: "",
+            socialMedia: {
+                twitter: "",
+                instagram: "",
+            },
+        });
+    } catch (e) {
+        if (e.code === 11000 ) return res.status(409).end("username " + username + " already exists");
+        else return res.status(500).end(e);
+    }
+
+
+    signInUser(req, res, user);
+
+    return res.json(user);
+});
+
+
+app.post('/signin/', async function (req, res, next) {
+    let username = req.body.username;
+    let password = req.body.password;
+
+    const userDocs = await User.find({
+        username: username.trim(),
+    });
+    if (userDocs === undefined || userDocs[0] === undefined)
+        throw new Error("User not found");
+
+    let user = userDocs[0];
+    let validPass = await bcrypt.compare(
+        password.trim(),
+        user.password
+    );
+
+    if (validPass) {
+        signInUser(req, res, user);
+    } else {
+        return res.status(401).end("access denied");
+    }
+
+    return res.json(user);
+});
+
+app.get('/signout/', async function (req, res, next) {
+    signOutUser(req, res);
+    return res.redirect('/');
+});
+
 app.use("/graphql", (req, res, next) => {
+    isAuthenticated(req, res, next)
     expressGraphQL({
         schema: schema,
         context: {
@@ -562,7 +553,7 @@ io.on('connection', socket => {
             socket.broadcast.emit('userleft', socket.id);
         });
         // if disconnecting owner
-        // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave 
+        // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
         Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
             socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
         });
