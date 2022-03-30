@@ -22,18 +22,16 @@ export class CampfireApi extends BaseGraphqlApi {
 
     static addCampfire = async (
         campfireData: any,
-        followers: string[],
         responseFields = [""]
     ) => {
-        let query = `mutation AddCampfire($campfireData: CampfireInputObject, $followers: [String]){
-                        addCampfire(campfireData: $campfireData, followers: $followers) {
+        let query = `mutation AddCampfire($campfireData: CampfireInputObject){
+                        addCampfire(campfireData: $campfireData) {
                            ${this.generateResponseFields(responseFields)}
                         }
                       }`;
 
         let variables = {
             campfireData: campfireData,
-            followers: followers,
         };
 
         return this.graphQLCall(query, variables);
@@ -190,5 +188,5 @@ export const CampfireFields = {
     thumbnail: "thumbnail",
     soundtrack: "soundtrack",
     scenes: "scenes",
-    followers: "followers",
+    followers: "followers {socketId username}",
 };

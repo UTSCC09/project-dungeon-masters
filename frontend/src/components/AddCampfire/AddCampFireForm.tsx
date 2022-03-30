@@ -140,7 +140,6 @@ export function AddCampFireForm() {
             };
             CampfireApi.addCampfire(
                 campfireData,
-                [],
                 [
                     CampfireFields.title,
                     CampfireFields.id,

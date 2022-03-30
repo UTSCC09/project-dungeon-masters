@@ -5,8 +5,8 @@ import { CampfireApi } from "../api/campfiresApi";
 import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 import {io, Socket} from "socket.io-client";
-import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp, ReturnPayload} from "../components/lobby/socketsInterfaces";
-//import "../components/lobby/socketsInterfaces";
+import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, follower} from "../components/lobby/socketsInterfaces";
+import {SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp, ReturnPayload} from "../components/lobby/socketsInterfaces";
 import Peer from "simple-peer";
 
 const staticListeners = [
@@ -67,7 +67,6 @@ export default function Lobby(props: PropsType) {
     }
 
     function handleExitLobby() {
-        // TODO: Send exit lobby request to server
         socketRef.current?.disconnect();
         navigate("/");
     }
@@ -136,17 +135,19 @@ export default function Lobby(props: PropsType) {
                             socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
                                 let temppeers:peersRefType[] = [];
-                                users.forEach(userId => {
+                                users.forEach(user => {
                                     //userid is the socket id for that client
-                                    const peer = createPeer(userId, socketRef.current!.id, stream);
-                                    peersRef.current.push({
-                                        peerId: userId,
-                                        peer,
-                                    })
-                                    temppeers.push({
-                                        peerId: userId,
-                                        peer,
-                                    });
+                                    if(user.socketId){
+                                        const peer = createPeer(user.socketId, socketRef.current!.id, stream);
+                                        peersRef.current.push({
+                                            peerId: user.socketId,
+                                            peer,
+                                        })
+                                        temppeers.push({
+                                            peerId: user.socketId,
+                                            peer,
+                                        });
+                                    }
                                 });
                                 setPeers(temppeers);
                             });
@@ -184,7 +185,25 @@ export default function Lobby(props: PropsType) {
                                 peersRef.current = peers;
 
                                 setPeers(peers);
-                            })
+                            });
+
+                            socketRef.current.on("error", (message) => {
+                                setErrorMessage(message);
+                            });
+
+                            socketRef.current.on("ownerleft", (id,message) => {
+                                const peerObj = peersRef.current.find(p => p.peerId === id);
+                                if(peerObj) {
+                                    // destroy the peer session
+                                    peerObj.peer.destroy();
+                                }
+                                // remove the destroyed peer
+                                const peers = peersRef.current.filter(p => p.peerId !== id);
+                                peersRef.current = peers;
+
+                                setPeers(peers);
+                                setErrorMessage(message);
+                            });
                         }
                     });
                 } else {
@@ -229,6 +248,7 @@ export default function Lobby(props: PropsType) {
                         onClick={(e) => {
                             e.preventDefault();
                             setErrorMessage("");
+                            handleExitLobby();
                         }}
                     ></button>
                 </div>
@@ -381,7 +401,7 @@ function ListenerView(props: {
 }) {
     const { lobbyId, errorHandler } = props;
     const [status, setStatus] = useState(0);
-    const [listeners, setListeners] = useState([]);
+    const [listeners, setListeners] = useState<follower[]>([]);
     const [images, setImages] = useState<Array<string>>([]);
     const [muted, setMuted] = useState(false);
     const [speakerMuted, setSpeakerMuted] = useState(false);
@@ -431,8 +451,8 @@ function ListenerView(props: {
                         <div className="w-[15%] bg-gray-700 overflow-auto pr-6">
                             {listeners.map((item, index) => {
                                 return (
-                                    <div className="grid grid-cols-2 text-center">
-                                        {item}
+                                    <div key={item.username} className="grid grid-cols-2 text-center">
+                                        {item.username}
                                         <Slider
                                             size="small"
                                             defaultValue={70}

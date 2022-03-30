@@ -3,11 +3,12 @@ export interface ServerToClientEvents {
     noArg: () => void;
     basicEmit: (a: number, b: string, c: Buffer) => void;
     withAck: (d: string, callback: (e: number) => void) => void;
-    roomfull: () => void;
-    allusers: (users:string[]) => any;
+    error: (message: string) => void;
+    allusers: (users:follower[]) => any;
     userjoined: (payload: ReceivePayload) => any;
     receivingreturnedsignal: (payload: ReceiveReturnPayload) => any;
     userleft: (id: string) => any;
+    ownerleft: (id: string, message:string) => any;
   }
   
 export interface ClientToServerEvents {
@@ -57,4 +58,9 @@ export interface ReceiveReturnPayload {
 
 export interface PeerVidProp {
     peer: Peer.Instance;
+}
+
+export interface follower{
+  socketId: string;
+  username: string;
 }

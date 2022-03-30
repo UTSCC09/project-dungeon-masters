@@ -172,7 +172,7 @@ const RootQueryType = new GraphQLObjectType({
                         });
                     if (follower)
                         filter.$or.push({
-                            followers: { $in: context.session.username },
+                            followers: { username:{$in: context.session.username} },
                         });
                     if (filter.$or.length === 0) filter = {};
                     return filter;
@@ -327,7 +327,6 @@ const RootMutationType = new GraphQLObjectType({
             type: CampfireType,
             args: {
                 campfireData: { type: CampfireInputType },
-                followers: { type: new GraphQLList(GraphQLString) },
             },
             resolve: async (source, args, context) => {
                 isAuthenticated(context);
@@ -341,7 +340,7 @@ const RootMutationType = new GraphQLObjectType({
                     thumbnail: args.campfireData.thumbnail,
                     soundtrack: args.campfireData.soundtrack,
                     scenes: args.campfireData.scenes,
-                    followers: args.followers,
+                    followers: [],
                 });
             },
         },
@@ -383,7 +382,7 @@ const RootMutationType = new GraphQLObjectType({
                     {
                         $addToSet: {
                             followers: {
-                                $each: args.usernames,
+                                $each: { username: args.usernames, socketId: ""},
                             },
                         },
                     },
@@ -406,7 +405,7 @@ const RootMutationType = new GraphQLObjectType({
                     },
                     {
                         $pullAll: {
-                            followers: args.usernames,
+                            followers: { username: args.usernames },
                         },
                     },
                     { new: true }
@@ -519,35 +518,33 @@ app.get("/api/images/picture/:id", function (req, res, next) {
     });
 });
 
-// switch to mongoDB once working
-// user stores for each room, the socket ids for a user
-const users = {};
-
-// each socket key refers to a roomID value
-const socketToRoom = {};
-
-//app.options('*',cors());
-
 // on is like an event listener, listening an emit event from client
 // emit is pushing an event to trigger on
 io.on('connection', socket => {
     socket.on("joinroom", lobbyId => {
-        if (users[lobbyId]) {
-            const length = users[lobbyId].length;
-            if (length === 10) {
-                socket.emit("roomfull");
-                return;
+        //check if user is alreay in the lobby; if not, don't emit any signal/disconnect immediately
+        //followers: {username:{$in: session.username}, socketId: {$ne: ""},  ownerSocketId: {$ne: ""}
+        console.log(session.username, session.req);
+        Campfire.findOne({ _id: lobbyId }, function(err, campfire){
+            // if campfire, don't emit signal
+            if(!campfire || err){
+                // handle not found
+                socket.emit("error", "The campfire is either not active or does not exist.");
             }
-            users[lobbyId].push(socket.id);
-        } else {
-            users[lobbyId] = [socket.id];
-        }
-        socketToRoom[socket.id] = lobbyId;
-        // gets ids that are not the socketid, users that are not yourself
-        const usersInThisRoom = users[lobbyId].filter(id => id !== socket.id);
-        console.log(users);
-        console.log(usersInThisRoom);
-        socket.emit("allusers", usersInThisRoom);
+            else if(campfire.followers.length < 16){
+                // if session.username is same as owner, add a field that keeps it's socket
+                Campfire.findOneAndUpdate({ _id: lobbyId,},{$addToSet: {followers: { username: "", socketId: socket.id }},},
+                    { new: true }, function(err, campfire) {
+                        console.log(campfire.followers);
+                        const joinedSocketsInRoom = campfire.followers.filter(follower => follower.socketId !== socket.id && follower.socketId !== "");
+                        joinedSocketsInRoom.push({username: campfire.ownerUsername, socketId: campfire.ownerSocketId});
+                        console.log(joinedSocketsInRoom);
+                        socket.emit("allusers", joinedSocketsInRoom);
+                    });
+            }else{
+                socket.emit("error", "The campfire is full, please enter later.");
+            }
+        });
     });
 
     socket.on("sendingsignal", payload => {
@@ -560,13 +557,15 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         // disconnects socket, basically remove socket id from room
-        const lobbyId = socketToRoom[socket.id];
-        let lobby = users[lobbyId];
-        if (lobby) {
-            lobby = lobby.filter(id => id !== socket.id);
-            users[lobbyId] = lobby;
-        }
-        socket.broadcast.emit('userleft', socket.id);
+        // if disconnecting a follower
+        Campfire.findOneAndUpdate({ followers: {socketId:socket.id }}, { followers: {socketId: ""} }, function(err, campfire){
+            socket.broadcast.emit('userleft', socket.id);
+        });
+        // if disconnecting owner
+        // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave 
+        Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
+            socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
+        });
     });
 
 });

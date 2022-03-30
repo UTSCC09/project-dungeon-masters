@@ -36,8 +36,18 @@ const CampfireType = new GraphQLObjectType({
             type: new GraphQLList(GraphQLString)
         },
         followers: {
-            type: new GraphQLList(GraphQLString)
-        }
+            type: new GraphQLList(
+                new GraphQLObjectType({
+                    name: "followers",
+                    fields: () =>({
+                        socketId: {type: GraphQLString},
+                        username: {type: GraphQLString}
+                    })
+                })
+        )},
+        ownerSocketId: {
+            type: GraphQLString
+        },
     }),
 });
 
