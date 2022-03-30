@@ -33,8 +33,6 @@ const soundFXCaller = (function(){
                 mapWordPos = wordCount;
             }
 
-            console.log(token.text.content, index, token.text.beginOffset - prevLength, data[index].length)
-
             data[index].words.push({
                 word: token.text.content,
                 charIndex: token.text.beginOffset - prevLength,
