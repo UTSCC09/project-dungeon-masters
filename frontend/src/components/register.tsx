@@ -6,6 +6,7 @@ import CameraControls from "./3d/CameraControls";
 import Skybox from "./3d/Skybox";
 import StyledLink from "./StyledLink";
 import {UserApi, UserFields} from "../api/userApi";
+import {AuthenticationApi} from "../api/authenticationApi";
 
 interface PropsType {
     setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
@@ -37,26 +38,18 @@ const Register = function (props: PropsType) {
                 return;
             }
         }
-        UserApi.signUp(username, password, [UserFields._id, UserFields.username])
+        AuthenticationApi.signUp(username, password)
             .then((res) => {
-                if (res) {
-                    return res.json();
-                } else {
-                    console.log("Invalid");
-                    setErrorMessage("Invalid username or password!");
-                }
-            })
-            .then((json) => {
-                if (!json.errors) {
-                    navigate("/");
-                } else {
-                    setErrorMessage(json.errors[0].message);
-                }
-            })
-            .catch((e) => {
-                console.error(e);
-                setErrorMessage(String(e));
-            });
+            console.log(res)
+            if (res.username !== null && res.username !== "") {
+                navigate("/");
+            } else {
+                setErrorMessage("Invalid username or password!");
+            }
+        }).catch((e) => {
+            console.error(e);
+            setErrorMessage(String(e));
+        });
     };
 
     return (

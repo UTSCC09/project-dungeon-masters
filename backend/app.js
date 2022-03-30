@@ -123,6 +123,7 @@ const signInUser = (req, res, user) => {
             sameSite: true,
         })
     );
+    return res.json(user);
 };
 
 const signOutUser = (req, res) => {
@@ -407,15 +408,11 @@ app.post('/signup/', async function (req, res, next) {
                 instagram: "",
             },
         });
+        return signInUser(req, res, user);
     } catch (e) {
         if (e.code === 11000 ) return res.status(409).end("username " + username + " already exists");
         else return res.status(500).end(e);
     }
-
-
-    signInUser(req, res, user);
-
-    return res.json(user);
 });
 
 
@@ -427,7 +424,7 @@ app.post('/signin/', async function (req, res, next) {
         username: username.trim(),
     });
     if (userDocs === undefined || userDocs[0] === undefined)
-        throw new Error("User not found");
+        return res.status(401).end("Invalid username or password");
 
     let user = userDocs[0];
     let validPass = await bcrypt.compare(
@@ -436,12 +433,10 @@ app.post('/signin/', async function (req, res, next) {
     );
 
     if (validPass) {
-        signInUser(req, res, user);
+        return signInUser(req, res, user);
     } else {
-        return res.status(401).end("access denied");
+        return res.status(401).end("Invalid username or password");
     }
-
-    return res.json(user);
 });
 
 app.get('/signout/', async function (req, res, next) {

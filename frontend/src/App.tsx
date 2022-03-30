@@ -7,6 +7,7 @@ import staticData from "./assets/staticData/lobbies";
 import { useCookies } from "react-cookie";
 import { UserApi } from "./api/userApi";
 import { CampfireApi, CampfireFields } from "./api/campfiresApi";
+import {AuthenticationApi} from "./api/authenticationApi";
 
 function App() {
     const searchTextRef = useRef("");
@@ -18,7 +19,7 @@ function App() {
 
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         e.preventDefault();
-        UserApi.signOut();
+        AuthenticationApi.signOut();
         removeCookie("username");
     }
     function loadRecentLobbies() {

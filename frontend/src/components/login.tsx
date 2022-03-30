@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import StyledLink from "./StyledLink";
 import {UserApi, UserFields} from "../api/userApi";
+import {AuthenticationApi} from "../api/authenticationApi";
 
 interface PropsType {
     setShowLogin: React.Dispatch<React.SetStateAction<boolean>>;
@@ -18,21 +19,13 @@ const Login = function (props: PropsType) {
 
     const signinHandler = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        UserApi.signIn(username, password, [UserFields._id, UserFields.username]).then((res) => {
-                if (res) {
-                    return res.json();
+        AuthenticationApi.signIn(username, password).then((res) => {
+                if (res.username !== null && res.username !== "") {
+                    navigate("/");
                 } else {
                     setErrorMessage("Invalid username or password!");
                 }
-            })
-            .then((json) => {
-                if (!json.errors) {
-                    navigate("/");
-                } else {
-                    setErrorMessage(json.errors[0].message);
-                }
-            })
-            .catch((e) => {
+            }).catch((e) => {
                 console.error(e);
                 setErrorMessage(String(e));
             });
