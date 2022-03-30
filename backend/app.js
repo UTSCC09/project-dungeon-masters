@@ -217,7 +217,7 @@ const RootQueryType = new GraphQLObjectType({
                 text: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
-                return naturalLanguage.syntaxAnalysis(args.text);
+                return soundFXCaller.determineSFXCalls(args.text);
             },
         },
     }),
