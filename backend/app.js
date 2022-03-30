@@ -171,7 +171,7 @@ const RootQueryType = new GraphQLObjectType({
                 text: {type: GraphQLString}
             },
             resolve: async (source, args, context) => {
-                return naturalLanguage.syntaxAnalysis(args.text);
+                return soundFXCaller.determineSFXCalls(args.text);
             }
         }
     }),
@@ -495,6 +495,7 @@ const http = require("http");
 const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
+const {soundFXCaller} = require("./CampFireSound/SoundFXCaller");
 const PORT = 4000;
 
 http.createServer(app).listen(PORT, function (err) {
