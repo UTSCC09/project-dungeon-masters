@@ -218,8 +218,8 @@ const RootQueryType = new GraphQLObjectType({
             },
             resolve: async (source, args, context) => {
                 return soundFXCaller.determineSFXCalls(args.text);
-            },
-        },
+            }
+        }
     }),
 });
 
