@@ -28,7 +28,7 @@ const soundFXCaller = (function(){
         morphologyTree.tokens.forEach(token => {
             wordCount += 1;
             if (token.text.beginOffset - prevLength > data[index].length) {
-                prevLength = data[index].length;
+                prevLength += data[index].length + 1;
                 index += 1;
                 mapWordPos = wordCount;
             }
