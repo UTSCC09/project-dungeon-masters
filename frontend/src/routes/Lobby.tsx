@@ -45,7 +45,7 @@ function PeerVideo(props: PeerVidProp){
 
     return (
 
-            <video className="h-10 w-20" autoPlay playsInline ref={ref}></video> 
+            <video autoPlay playsInline ref={ref}></video> 
     );
 }
 
@@ -128,7 +128,7 @@ export default function Lobby(props: PropsType) {
                         }
                     });
                     socketRef.current.connect();
-                    navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream =>{
+                    navigator.mediaDevices.getUserMedia({video: false, audio: true}).then(stream =>{
                         userStream.current!.srcObject = stream;
                         if(socketRef.current){
                             socketRef.current.emit("joinroom", lobbyId);
@@ -233,7 +233,7 @@ export default function Lobby(props: PropsType) {
                 </div>
             </nav>
             {/* this client's call, where userStream is set */}
-            <video className="h-20 w-20" muted autoPlay playsInline ref={userStream}></video> 
+            <video muted autoPlay playsInline ref={userStream}></video> 
             {peers.map((peer) => {
                 return (
                     <PeerVideo key={peer.peerId} peer={peer.peer} />

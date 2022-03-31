@@ -11,6 +11,7 @@ const {
     GraphQLString,
     GraphQLList,
     GraphQLBoolean,
+    GraphQLInt,
 } = require("graphql");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -160,6 +161,7 @@ const RootQueryType = new GraphQLObjectType({
                 campfireId: { type: GraphQLString },
                 owned: { type: GraphQLBoolean },
                 follower: { type: GraphQLBoolean },
+                page: { type: GraphQLInt },
             },
             resolve: async (source, args, context) => {
                 if (args.campfireId !== undefined && args.campfireId !== '') return [Campfire.findById(args.campfireId)];
@@ -177,7 +179,7 @@ const RootQueryType = new GraphQLObjectType({
                     if (filter.$or.length === 0) filter = {};
                     return filter;
                 };
-                return Campfire.find(filter(args.owned, args.follower));
+                return Campfire.find(filter(args.owned, args.follower)).skip(args.page!==-1? args.page*10 : 0).limit(args.page!==-1? 10: 0);
             },
         },
         getCampfireRole: {
@@ -538,7 +540,7 @@ io.on('connection', socket => {
             }else{
                 Campfire.findOne({ _id: lobbyId,  ownerSocketId: {$ne: ""} }, function(err, campfire){
                     // follower joining, check if owner is there.
-                    if(!campfire || err){
+                    if(!campfire || campfire.ownerSocketId === undefined || err){
                         // handle not found
                         socket.emit("error", "The campfire is either not active or does not exist.");
                     }else if(campfire.followers.find(follower => follower.username === socSession.username && follower.socketId !== "")){
