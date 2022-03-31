@@ -84,7 +84,6 @@ const upload = multer({ storage: storage });
 app.use(session);
 
 app.use(function (req, res, next) {
-    console.log(req.session);
     req.username =
         req.session && req.session.username ? req.session.username : null;
     console.log("HTTP request", req.username, req.method, req.url, req.body);
@@ -269,6 +268,7 @@ const RootMutationType = new GraphQLObjectType({
                     soundtrack: args.campfireData.soundtrack,
                     scenes: args.campfireData.scenes,
                     followers: [],
+                    ownerSocketId: "",
                 });
             },
         },
@@ -509,33 +509,49 @@ io.use(sharedsession(session, {
     autoSave:true
 }));
 
+
 // on is like an event listener, listening an emit event from client
 // emit is pushing an event to trigger on
 io.on('connection', socket => {
+
+    function SendAllUserSockets(err, campfire) {
+        const joinedSocketsInRoom = campfire.followers.filter(follower => follower.socketId && follower.socketId !== socket.id && follower.socketId !== "");
+        joinedSocketsInRoom.push({username: campfire.ownerUsername, socketId: campfire.ownerSocketId});
+        console.log(joinedSocketsInRoom);
+        socket.emit("allusers", joinedSocketsInRoom);
+    }
+
     const socSession = socket.handshake.session;
-    console.log(socSession);
     socket.on("joinroom", lobbyId => {
         //check if user is alreay in the lobby; if not, don't emit any signal/disconnect immediately
-        //followers: {username:{$in: session.username}, socketId: {$ne: ""},  ownerSocketId: {$ne: ""}
-       console.log(socSession.username);
-        Campfire.findOne({ _id: lobbyId }, function(err, campfire){
-            // if campfire, don't emit signal
-            if(!campfire || err){
-                // handle not found
-                socket.emit("error", "The campfire is either not active or does not exist.");
-            }
-            else if(campfire.followers.length < 16){
-                // if session.username is same as owner, add a field that keeps it's socket
-                Campfire.findOneAndUpdate({ _id: lobbyId,},{$addToSet: {followers: { username: "", socketId: socket.id }},},
-                    { new: true }, function(err, campfire) {
-                        console.log(campfire.followers);
-                        const joinedSocketsInRoom = campfire.followers.filter(follower => follower.socketId !== socket.id && follower.socketId !== "");
-                        joinedSocketsInRoom.push({username: campfire.ownerUsername, socketId: campfire.ownerSocketId});
-                        console.log(joinedSocketsInRoom);
-                        socket.emit("allusers", joinedSocketsInRoom);
-                    });
+        //first check if it is the owner joining in
+        Campfire.findOne({ _id: lobbyId, ownerUsername: socSession.username}, function(err, campfire){
+            //
+            if(campfire){
+                // session user is owner
+                if(!campfire.ownerSocketId || campfire.ownerSocketId === ""){
+                    Campfire.findOneAndUpdate({ _id: lobbyId,},{ ownerSocketId: socket.id },
+                        { new: true }, SendAllUserSockets);
+                }else{
+                    socket.emit("error", "User joined on a different tab.");
+                }
             }else{
-                socket.emit("error", "The campfire is full, please enter later.");
+                Campfire.findOne({ _id: lobbyId,  ownerSocketId: {$ne: ""} }, function(err, campfire){
+                    // follower joining, check if owner is there.
+                    if(!campfire || err){
+                        // handle not found
+                        socket.emit("error", "The campfire is either not active or does not exist.");
+                    }else if(campfire.followers.find(follower => follower.username === socSession.username && follower.socketId !== "")){
+                        socket.emit("error","User joined on a different tab.");
+                    }
+                    else if(campfire.followers.length < 16){
+                        // if session.username is same as owner, add a field that keeps it's socket
+                        Campfire.findOneAndUpdate({ _id: lobbyId,},{$addToSet: {followers: { username: socSession.username, socketId: socket.id }},},
+                            { new: true }, SendAllUserSockets);
+                    }else{
+                        socket.emit("error", "The campfire is full, please enter later.");
+                    }
+                });
             }
         });
     });
@@ -551,6 +567,7 @@ io.on('connection', socket => {
     socket.on('disconnect', () => {
         // disconnects socket, basically remove socket id from room
         // if disconnecting a follower
+        
         Campfire.findOneAndUpdate({ followers: {socketId:socket.id }}, { followers: {socketId: ""} }, function(err, campfire){
             socket.broadcast.emit('userleft', socket.id);
         });

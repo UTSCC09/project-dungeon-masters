@@ -130,7 +130,6 @@ export default function Lobby(props: PropsType) {
                     socketRef.current.connect();
                     navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream =>{
                         userStream.current!.srcObject = stream;
-                        console.log("my stream", userStream.current!.srcObject);
                         if(socketRef.current){
                             socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
@@ -188,6 +187,7 @@ export default function Lobby(props: PropsType) {
                             });
 
                             socketRef.current.on("error", (message) => {
+                                console.log("error", message);
                                 setErrorMessage(message);
                             });
 
@@ -240,7 +240,7 @@ export default function Lobby(props: PropsType) {
                 );
             })}
             {errorMessage !== "" ? (
-                <div className="bg-red-200 absolute top-[30%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded">
+                <div className="bg-red-200 absolute top-[30%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded z-10">
                     <div>{errorMessage}</div>
                     <button
                         className="absolute right-0 top-0 bg-red-600 rounded-full translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-cover"
