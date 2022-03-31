@@ -62,6 +62,9 @@ function App() {
     }
 
     useEffect(() => {
+        if(!isLoggedin){
+            navigate("/login");
+        }
         loadRecentLobbies();
     }, []);
 

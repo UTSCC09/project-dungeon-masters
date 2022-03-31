@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "run": "export GOOGLE_APPLICATION_CREDENTIALS=campfire-344520-d1dfd5ebeeb2.json && nodemon app.js",
-	"runw": "set GOOGLE_APPLICATION_CREDENTIALS=campfire-344520-d1dfd5ebeeb2.json && nodemon app.js"
+    "runw": "set GOOGLE_APPLICATION_CREDENTIALS=campfire-344520-d1dfd5ebeeb2.json && nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,7 @@
     "express": "^4.17.3",
     "express-graphql": "^0.12.0",
     "express-session": "^1.17.2",
+    "express-socket.io-session": "^1.3.5",
     "express-validator": "^6.14.0",
     "graphql": "^16.3.0",
     "graphql-type-json": "^0.3.2",

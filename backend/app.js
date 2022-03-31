@@ -3,7 +3,7 @@ const fs = require("fs");
 const express = require("express");
 
 const expressGraphQL = require("express-graphql").graphqlHTTP;
-const GraphQLJSON = require('graphql-type-json').GraphQLJSON
+const GraphQLJSON = require('graphql-type-json').GraphQLJSON;
 
 const {
     GraphQLSchema,
@@ -33,7 +33,18 @@ const { aggregate } = require("./models/userModel");
 const PORT = 4000;
 const server = http.createServer(app);
 
-const session = require("express-session");
+const session = require("express-session")({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        maxAge: null,
+        sameSite: true,
+    },
+});
 const {Server} = require("socket.io");
 const io = new Server(server, {
     cors:{
@@ -56,6 +67,8 @@ const io = new Server(server, {
     }
 });
 
+const sharedsession = require("express-socket.io-session");
+
 app.use(bodyParser.urlencoded({ extended: false }));
 const multer = require("multer");
 const storage = multer.diskStorage({
@@ -68,22 +81,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        resave: false,
-        saveUninitialized: true,
-        cookie: {
-            path: "/",
-            httpOnly: true,
-            secure: false,
-            maxAge: null,
-            sameSite: true,
-        },
-    })
-);
+app.use(session);
 
 app.use(function (req, res, next) {
+    console.log(req.session);
     req.username =
         req.session && req.session.username ? req.session.username : null;
     console.log("HTTP request", req.username, req.method, req.url, req.body);
@@ -110,6 +111,7 @@ const Image = require("./models/imageModel");
 
 const isAuthenticated = (req, res, next) => {
     if (!req.session.username) return res.status(401).end("access denied");
+    next();
 };
 
 const signInUser = (req, res, user) => {
@@ -444,8 +446,7 @@ app.get('/signout/', async function (req, res, next) {
     return res.redirect('/');
 });
 
-app.use("/graphql", (req, res, next) => {
-    isAuthenticated(req, res, next)
+app.use("/graphql",isAuthenticated, (req, res, next) => {
     expressGraphQL({
         schema: schema,
         context: {
@@ -456,7 +457,7 @@ app.use("/graphql", (req, res, next) => {
     })(req, res, next);
 });
 
-app.post("/api/images/", upload.single("picture"), function (req, res, next) {
+app.post("/api/images/", isAuthenticated, upload.single("picture"), function (req, res, next) {
     var obj = {
         img: {
             data: Buffer.from(fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)).toString('base64'), 'base64'),
@@ -504,13 +505,19 @@ app.get("/api/images/picture/:id", function (req, res, next) {
     });
 });
 
+io.use(sharedsession(session, {
+    autoSave:true
+}));
+
 // on is like an event listener, listening an emit event from client
 // emit is pushing an event to trigger on
 io.on('connection', socket => {
+    const socSession = socket.handshake.session;
+    console.log(socSession);
     socket.on("joinroom", lobbyId => {
         //check if user is alreay in the lobby; if not, don't emit any signal/disconnect immediately
         //followers: {username:{$in: session.username}, socketId: {$ne: ""},  ownerSocketId: {$ne: ""}
-        console.log(session.username, session.req);
+       console.log(socSession.username);
         Campfire.findOne({ _id: lobbyId }, function(err, campfire){
             // if campfire, don't emit signal
             if(!campfire || err){

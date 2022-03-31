@@ -29,6 +29,7 @@ export const api = (function(){
                 }
             };
             xhr.open(method, url, true);
+            xhr.withCredentials = true;
             xhr.send(formdata);
         });
     }
