@@ -33,6 +33,12 @@ export function Credits(){
             <li>
                 <a href="https://www.geeksforgeeks.org/upload-and-retrieve-image-on-mongodb-using-mongoose/">upload and retrieve image on mongoDB</a>
             </li>
+            <li>
+                <a href="https://www.youtube.com/watch?v=R1sfHPwEH7A&ab_channel=CodingWithChaim">React Group Video Chat | simple-peer webRTC</a>
+            </li>
+            <li>
+            <a href="https://www.youtube.com/watch?v=0fWN_q4zAqs&ab_channel=CodingWithChaim">Handle User Disconnect in WebRTC Group call</a>
+            </li>
         </ul>
     </div>
     );

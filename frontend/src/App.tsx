@@ -7,6 +7,7 @@ import staticData from "./assets/staticData/lobbies";
 import { useCookies } from "react-cookie";
 import { UserApi } from "./api/userApi";
 import { CampfireApi, CampfireFields } from "./api/campfiresApi";
+import {AuthenticationApi} from "./api/authenticationApi";
 
 function App() {
     const searchTextRef = useRef("");
@@ -14,11 +15,12 @@ function App() {
     const [lobbies, setLobbies] = useState([]);
     const isLoggedin = cookies.username && cookies.username !== "";
     const navigate = useNavigate();
+    const [page, setPage] = useState(0);
 
 
     function onLogOut(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
         e.preventDefault();
-        UserApi.signOut();
+        AuthenticationApi.signOut();
         removeCookie("username");
     }
     function loadRecentLobbies() {
@@ -30,7 +32,7 @@ function App() {
             CampfireFields.status,
             CampfireFields.followers,
             CampfireFields.thumbnail,
-        ])
+        ], page)
             .then((res) => {
                 if (res) {
                     return res.json();
@@ -60,7 +62,10 @@ function App() {
             });
     }
 
-    useEffect(() => {
+    useEffect(() =>{
+        if(!isLoggedin){
+            navigate("/login");
+        }
         loadRecentLobbies();
     }, []);
 

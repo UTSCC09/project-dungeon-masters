@@ -26,7 +26,18 @@ const campfireSchema = new mongoose.Schema({
     },
     soundtrack: [ { type: String } ],
     scenes: [ { type: String } ],
-    followers: [ { type: String } ]
+    followers: [ { 
+        socketId: {
+            type: String
+        },
+        username: {
+            type: String,
+            trim: true
+        }
+    } ],
+    ownerSocketId: {
+        type: String
+    },
 });
 
 module.exports = mongoose.model("campfire", campfireSchema);

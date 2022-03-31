@@ -4,10 +4,11 @@ export class CampfireApi extends BaseGraphqlApi {
     static queryCampfires = async (
         owned: boolean,
         follower: boolean,
-        responseFields = [""]
+        responseFields = [""],
+        page = -1,
     ) => {
-        let query = `query QueryCampfires($owned: Boolean, $follower: Boolean) {
-                        campfires(owned: $owned, follower: $follower) {
+        let query = `query QueryCampfires($owned: Boolean, $follower: Boolean, $page: Int) {
+                        campfires(owned: $owned, follower: $follower, page: $page) {
                           ${this.generateResponseFields(responseFields)}
                         }
                       }`;
@@ -15,6 +16,7 @@ export class CampfireApi extends BaseGraphqlApi {
         let variables = {
             owned: owned,
             follower: follower,
+            page: page,
         };
 
         return this.graphQLCall(query, variables);
@@ -22,18 +24,16 @@ export class CampfireApi extends BaseGraphqlApi {
 
     static addCampfire = async (
         campfireData: any,
-        followers: string[],
         responseFields = [""]
     ) => {
-        let query = `mutation AddCampfire($campfireData: CampfireInputObject, $followers: [String]){
-                        addCampfire(campfireData: $campfireData, followers: $followers) {
+        let query = `mutation AddCampfire($campfireData: CampfireInputObject){
+                        addCampfire(campfireData: $campfireData) {
                            ${this.generateResponseFields(responseFields)}
                         }
                       }`;
 
         let variables = {
             campfireData: campfireData,
-            followers: followers,
         };
 
         return this.graphQLCall(query, variables);
@@ -190,5 +190,5 @@ export const CampfireFields = {
     thumbnail: "thumbnail",
     soundtrack: "soundtrack",
     scenes: "scenes",
-    followers: "followers",
+    followers: "followers {socketId username}",
 };

@@ -2,3 +2,4 @@
 .env
 campfire-344520-d1dfd5ebeeb2.json
 node_modules
+uploads/*
