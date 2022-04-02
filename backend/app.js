@@ -3,7 +3,7 @@ const fs = require("fs");
 const express = require("express");
 
 const expressGraphQL = require("express-graphql").graphqlHTTP;
-const GraphQLJSON = require('graphql-type-json').GraphQLJSON;
+const GraphQLJSON = require("graphql-type-json").GraphQLJSON;
 
 const {
     GraphQLSchema,
@@ -46,14 +46,14 @@ const session = require("express-session")({
         sameSite: true,
     },
 });
-const {Server} = require("socket.io");
+const { Server } = require("socket.io");
 const io = new Server(server, {
-    cors:{
+    cors: {
         credentials: true,
         origin: function (origin, callback) {
             // allow requests with no origin
             // (like mobile apps or curl requests)
-            if (!origin){
+            if (!origin) {
                 return callback(null, true);
             }
             if (whitelist.indexOf(origin) === -1) {
@@ -65,7 +65,7 @@ const io = new Server(server, {
             return callback(null, true);
         },
         allowedHeaders: ["cfstorylobby"],
-    }
+    },
 });
 
 const sharedsession = require("express-socket.io-session");
@@ -139,7 +139,7 @@ const signOutUser = (req, res) => {
     );
 };
 
-const {naturalLanguage} = require("./CampFireSound/googleNLApi");
+const { naturalLanguage } = require("./CampFireSound/googleNLApi");
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -164,7 +164,8 @@ const RootQueryType = new GraphQLObjectType({
                 page: { type: GraphQLInt },
             },
             resolve: async (source, args, context) => {
-                if (args.campfireId !== undefined && args.campfireId !== '') return [Campfire.findById(args.campfireId)];
+                if (args.campfireId !== undefined && args.campfireId !== "")
+                    return [Campfire.findById(args.campfireId)];
 
                 let filter = (owned, follower) => {
                     let filter = { $or: [] };
@@ -174,35 +175,51 @@ const RootQueryType = new GraphQLObjectType({
                         });
                     if (follower)
                         filter.$or.push({
-                            followers: { username:{$in: context.session.username} },
+                            followers: {
+                                username: { $in: context.session.username },
+                            },
                         });
                     if (filter.$or.length === 0) filter = {};
                     return filter;
                 };
-                return Campfire.find(filter(args.owned, args.follower)).skip(args.page!==-1? args.page*10 : 0).limit(args.page!==-1? 10: 0);
+                return Campfire.find(filter(args.owned, args.follower))
+                    .skip(args.page !== -1 ? args.page * 10 : 0)
+                    .limit(args.page !== -1 ? 10 : 0);
             },
         },
         getCampfireRole: {
             type: GraphQLString,
             args: {
-                campfireId: {type: GraphQLString},
+                campfireId: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
-                let campfireDetails = await Campfire.find({_id: args.campfireId});
-                if (campfireDetails[0].ownerUsername === context.session.username) return 'owner';
-                if (campfireDetails[0].followers.includes(context.session.username)) return 'follower';
-                return 'none';
-            }
+                let campfireDetails = await Campfire.find({
+                    _id: args.campfireId,
+                });
+                if (
+                    campfireDetails[0].ownerUsername ===
+                    context.session.username
+                )
+                    return "owner";
+                if (
+                    campfireDetails[0].followers.includes(
+                        context.session.username
+                    )
+                )
+                    return "follower";
+                return "none";
+            },
         },
-        analyzeText: { //TODO: Remove, just for developing
+        analyzeText: {
+            //TODO: Remove, just for developing
             type: GraphQLJSON,
             args: {
-                text: {type: GraphQLString}
+                text: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
                 return naturalLanguage.syntaxAnalysis(args.text);
-            }
-        }
+            },
+        },
     }),
 });
 
@@ -310,7 +327,10 @@ const RootMutationType = new GraphQLObjectType({
                     {
                         $addToSet: {
                             followers: {
-                                $each: { username: args.usernames, socketId: ""},
+                                $each: {
+                                    username: args.usernames,
+                                    socketId: "",
+                                },
                             },
                         },
                     },
@@ -363,7 +383,9 @@ var whitelist = [
     "http://localhost:3000",
     "http://localhost:4000" /** other domains if any */,
     "http://c09-siniat.utsc-labs.utoronto.ca:4000",
-    "http://c09-siniat.utsc-labs.utoronto.ca"
+    "http://c09-siniat.utsc-labs.utoronto.ca",
+    "http://54.219.191.140",
+    "http://54.219.191.140:4000",
 ];
 
 var corsOptions = {
@@ -371,7 +393,7 @@ var corsOptions = {
     origin: function (origin, callback) {
         // allow requests with no origin
         // (like mobile apps or curl requests)
-        if (!origin){
+        if (!origin) {
             return callback(null, true);
         }
         if (whitelist.indexOf(origin) === -1) {
@@ -386,8 +408,7 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-
-app.post('/signup/', async function (req, res, next) {
+app.post("/signup/", async function (req, res, next) {
     let username = req.body.username;
     let password = req.body.password;
 
@@ -414,13 +435,15 @@ app.post('/signup/', async function (req, res, next) {
         });
         return signInUser(req, res, user);
     } catch (e) {
-        if (e.code === 11000 ) return res.status(409).end("username " + username + " already exists");
+        if (e.code === 11000)
+            return res
+                .status(409)
+                .end("username " + username + " already exists");
         else return res.status(500).end(e);
     }
 });
 
-
-app.post('/signin/', async function (req, res, next) {
+app.post("/signin/", async function (req, res, next) {
     let username = req.body.username;
     let password = req.body.password;
 
@@ -431,10 +454,7 @@ app.post('/signin/', async function (req, res, next) {
         return res.status(401).end("Invalid username or password");
 
     let user = userDocs[0];
-    let validPass = await bcrypt.compare(
-        password.trim(),
-        user.password
-    );
+    let validPass = await bcrypt.compare(password.trim(), user.password);
 
     if (validPass) {
         return signInUser(req, res, user);
@@ -443,12 +463,12 @@ app.post('/signin/', async function (req, res, next) {
     }
 });
 
-app.get('/signout/', async function (req, res, next) {
+app.get("/signout/", async function (req, res, next) {
     signOutUser(req, res);
-    return res.redirect('/');
+    return res.redirect("/");
 });
 
-app.use("/graphql",isAuthenticated, (req, res, next) => {
+app.use("/graphql", isAuthenticated, (req, res, next) => {
     expressGraphQL({
         schema: schema,
         context: {
@@ -459,37 +479,49 @@ app.use("/graphql",isAuthenticated, (req, res, next) => {
     })(req, res, next);
 });
 
-app.post("/api/images/", isAuthenticated, upload.single("picture"), function (req, res, next) {
-    var obj = {
-        img: {
-            data: Buffer.from(fs.readFileSync(join(__dirname + '/uploads/' + req.file.filename)).toString('base64'), 'base64'),
-            contentType: req.file.mimetype,
-            path: req.file.path
-        },
-        url: "",
-    };
-    Image.create(obj, (err, image) => {
-        if (err) {
-            return res.status(500).end(err);
-        } else {
-            Image.findOneAndUpdate(
-                {
-                    _id: image._id,
-                },
-                {
-                    url: "/api/images/picture/" + image._id,
-                },
-                { new: true },
-                (err, newImage) => {
-                    if (err) {
-                        return res.status(500).end(err);
+app.post(
+    "/api/images/",
+    isAuthenticated,
+    upload.single("picture"),
+    function (req, res, next) {
+        var obj = {
+            img: {
+                data: Buffer.from(
+                    fs
+                        .readFileSync(
+                            join(__dirname + "/uploads/" + req.file.filename)
+                        )
+                        .toString("base64"),
+                    "base64"
+                ),
+                contentType: req.file.mimetype,
+                path: req.file.path,
+            },
+            url: "",
+        };
+        Image.create(obj, (err, image) => {
+            if (err) {
+                return res.status(500).end(err);
+            } else {
+                Image.findOneAndUpdate(
+                    {
+                        _id: image._id,
+                    },
+                    {
+                        url: "/api/images/picture/" + image._id,
+                    },
+                    { new: true },
+                    (err, newImage) => {
+                        if (err) {
+                            return res.status(500).end(err);
+                        }
+                        res.json({ url: "/api/images/picture/" + image._id });
                     }
-                    res.json({ url: "/api/images/picture/" + image._id });
-                }
-            );
-        }
-    });
-});
+                );
+            }
+        });
+    }
+);
 
 app.get("/api/images/picture/:id", function (req, res, next) {
     Image.findOne({ _id: req.params.id }, function (err, image) {
@@ -507,81 +539,148 @@ app.get("/api/images/picture/:id", function (req, res, next) {
     });
 });
 
-io.use(sharedsession(session, {
-    autoSave:true
-}));
-
+io.use(
+    sharedsession(session, {
+        autoSave: true,
+    })
+);
 
 // on is like an event listener, listening an emit event from client
 // emit is pushing an event to trigger on
-io.on('connection', socket => {
-
+io.on("connection", (socket) => {
     function SendAllUserSockets(err, campfire) {
-        const joinedSocketsInRoom = campfire.followers.filter(follower => follower.socketId && follower.socketId !== socket.id && follower.socketId !== "");
-        joinedSocketsInRoom.push({username: campfire.ownerUsername, socketId: campfire.ownerSocketId});
+        const joinedSocketsInRoom = campfire.followers.filter(
+            (follower) =>
+                follower.socketId &&
+                follower.socketId !== socket.id &&
+                follower.socketId !== ""
+        );
+        joinedSocketsInRoom.push({
+            username: campfire.ownerUsername,
+            socketId: campfire.ownerSocketId,
+        });
         console.log(joinedSocketsInRoom);
         socket.emit("allusers", joinedSocketsInRoom);
     }
 
     const socSession = socket.handshake.session;
-    socket.on("joinroom", lobbyId => {
+    socket.on("joinroom", (lobbyId) => {
         //check if user is alreay in the lobby; if not, don't emit any signal/disconnect immediately
         //first check if it is the owner joining in
-        Campfire.findOne({ _id: lobbyId, ownerUsername: socSession.username}, function(err, campfire){
-            //
-            if(campfire){
-                // session user is owner
-                if(!campfire.ownerSocketId || campfire.ownerSocketId === ""){
-                    Campfire.findOneAndUpdate({ _id: lobbyId,},{ ownerSocketId: socket.id },
-                        { new: true }, SendAllUserSockets);
-                }else{
-                    socket.emit("error", "User joined on a different tab.");
+        Campfire.findOne(
+            { _id: lobbyId, ownerUsername: socSession.username },
+            function (err, campfire) {
+                //
+                if (campfire) {
+                    // session user is owner
+                    if (
+                        !campfire.ownerSocketId ||
+                        campfire.ownerSocketId === ""
+                    ) {
+                        Campfire.findOneAndUpdate(
+                            { _id: lobbyId },
+                            { ownerSocketId: socket.id },
+                            { new: true },
+                            SendAllUserSockets
+                        );
+                    } else {
+                        socket.emit("error", "User joined on a different tab.");
+                    }
+                } else {
+                    Campfire.findOne(
+                        { _id: lobbyId, ownerSocketId: { $ne: "" } },
+                        function (err, campfire) {
+                            // follower joining, check if owner is there.
+                            if (
+                                !campfire ||
+                                campfire.ownerSocketId === undefined ||
+                                err
+                            ) {
+                                // handle not found
+                                socket.emit(
+                                    "error",
+                                    "The campfire is either not active or does not exist."
+                                );
+                            } else if (
+                                campfire.followers.find(
+                                    (follower) =>
+                                        follower.username ===
+                                            socSession.username &&
+                                        follower.socketId !== ""
+                                )
+                            ) {
+                                socket.emit(
+                                    "error",
+                                    "User joined on a different tab."
+                                );
+                            } else if (campfire.followers.length < 16) {
+                                // if session.username is same as owner, add a field that keeps it's socket
+                                Campfire.findOneAndUpdate(
+                                    { _id: lobbyId },
+                                    {
+                                        $addToSet: {
+                                            followers: {
+                                                username: socSession.username,
+                                                socketId: socket.id,
+                                            },
+                                        },
+                                    },
+                                    { new: true },
+                                    SendAllUserSockets
+                                );
+                            } else {
+                                socket.emit(
+                                    "error",
+                                    "The campfire is full, please enter later."
+                                );
+                            }
+                        }
+                    );
                 }
-            }else{
-                Campfire.findOne({ _id: lobbyId,  ownerSocketId: {$ne: ""} }, function(err, campfire){
-                    // follower joining, check if owner is there.
-                    if(!campfire || campfire.ownerSocketId === undefined || err){
-                        // handle not found
-                        socket.emit("error", "The campfire is either not active or does not exist.");
-                    }else if(campfire.followers.find(follower => follower.username === socSession.username && follower.socketId !== "")){
-                        socket.emit("error","User joined on a different tab.");
-                    }
-                    else if(campfire.followers.length < 16){
-                        // if session.username is same as owner, add a field that keeps it's socket
-                        Campfire.findOneAndUpdate({ _id: lobbyId,},{$addToSet: {followers: { username: socSession.username, socketId: socket.id }},},
-                            { new: true }, SendAllUserSockets);
-                    }else{
-                        socket.emit("error", "The campfire is full, please enter later.");
-                    }
-                });
             }
+        );
+    });
+
+    socket.on("sendingsignal", (payload) => {
+        io.to(payload.userToSignal).emit("userjoined", {
+            signal: payload.signal,
+            callerID: payload.callerID,
         });
     });
 
-    socket.on("sendingsignal", payload => {
-        io.to(payload.userToSignal).emit('userjoined', { signal: payload.signal, callerID: payload.callerID});
+    socket.on("returningsignal", (payload) => {
+        io.to(payload.callerID).emit("receivingreturnedsignal", {
+            signal: payload.signal,
+            id: socket.id,
+        });
     });
 
-    socket.on("returningsignal", payload => {
-        io.to(payload.callerID).emit('receivingreturnedsignal', { signal: payload.signal, id: socket.id });
-    });
-
-    socket.on('disconnect', () => {
+    socket.on("disconnect", () => {
         // disconnects socket, basically remove socket id from room
         // if disconnecting a follower
-        
-        Campfire.findOneAndUpdate({ followers: {socketId:socket.id }}, { followers: {socketId: ""} }, function(err, campfire){
-            socket.broadcast.emit('userleft', socket.id);
-        });
+
+        Campfire.findOneAndUpdate(
+            { followers: { socketId: socket.id } },
+            { followers: { socketId: "" } },
+            function (err, campfire) {
+                socket.broadcast.emit("userleft", socket.id);
+            }
+        );
         // if disconnecting owner
         // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
-        Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
-            socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
-        });
+        Campfire.findOneAndUpdate(
+            { ownerSocketId: socket.id },
+            { ownerSocketId: "" },
+            function (err, campfire) {
+                socket.broadcast.emit("ownerleft", {
+                    id: socket.id,
+                    message:
+                        "The narrator has left the campfire, you will be redirected to the home page.",
+                });
+            }
+        );
     });
-
 });
-
 
 server.listen(PORT, function (err) {
     if (err) console.log(err);
