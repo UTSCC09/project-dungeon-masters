@@ -84,6 +84,8 @@ const soundFXCaller = (function(){
         let processedData = await dataPreprocessing(text);
         let entities = {};
 
+        console.log(text)
+
         for (const sentence of processedData) {
             entities[sentence.sentence] = await configureEntitiesWithContext(sentence.words);
         }

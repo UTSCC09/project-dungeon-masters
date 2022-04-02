@@ -139,7 +139,8 @@ const signOutUser = (req, res) => {
     );
 };
 
-const {naturalLanguage} = require("./CampFireSound/googleNLApi");
+const {soundFXCaller} = require("./CampFireSound/SoundFXCaller");
+const {startRecognitionStream, speechToText} = require("./CampFireSound/googleSpeechToTextApi");
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -179,7 +180,7 @@ const RootQueryType = new GraphQLObjectType({
                     if (filter.$or.length === 0) filter = {};
                     return filter;
                 };
-                return Campfire.find(filter(args.owned, args.follower)).skip(args.page!==-1? args.page*10 : 0).limit(args.page!==-1? 10: 0);
+                return Campfire.find(filter(args.owned, args.follower)).sort({date: -1}).skip(args.page!==-1? args.page*10 : 0).limit(args.page!==-1? 10: 0);
             },
         },
         getCampfireRole: {
@@ -194,13 +195,13 @@ const RootQueryType = new GraphQLObjectType({
                 return 'none';
             }
         },
-        analyzeText: { //TODO: Remove, just for developing
+        analyzeText: { //TODO: Remove, just for developing. Does not seem to work in SAFARI browser
             type: GraphQLJSON,
             args: {
                 text: {type: GraphQLString}
             },
             resolve: async (source, args, context) => {
-                return soundFXCaller.determineSFXCalls(args.text);
+                return await soundFXCaller.determineSFXCalls(args.text);
             }
         }
     }),
@@ -576,10 +577,23 @@ io.on('connection', socket => {
         // if disconnecting owner
         // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
         Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
+            speechToText.stopRecognitionStream();
             socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
         });
     });
 
+    socket.on('startGoogleCloudStream', () => {
+        console.log("Starting google cloud speech to text")
+        speechToText.startRecognitionStream(socket)
+    });
+
+    socket.on('binaryAudioData', (data) => {
+        speechToText.receiveData(data);
+    });
+
+    socket.on('endGoogleCloudStream', () => {
+        speechToText.stopRecognitionStream();
+    });
 });
 
 
