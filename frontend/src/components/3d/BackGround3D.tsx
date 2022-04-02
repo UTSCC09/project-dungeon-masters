@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Canvas } from "react-three-fiber";
+import { Canvas } from "@react-three/fiber";
 import CameraControls from "./CameraControls";
 import Skybox from "./Skybox";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Canvas } from "react-three-fiber";
+import { Canvas } from "@react-three/fiber";
 import CameraControls from "./3d/CameraControls";
 import Skybox from "./3d/Skybox";
 import StyledLink from "./StyledLink";
