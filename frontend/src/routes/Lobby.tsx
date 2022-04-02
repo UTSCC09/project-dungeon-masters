@@ -8,6 +8,8 @@ import {io, Socket} from "socket.io-client";
 import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, follower} from "../components/lobby/socketsInterfaces";
 import {SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp, ReturnPayload} from "../components/lobby/socketsInterfaces";
 import Peer from "simple-peer";
+import {context} from "@react-three/fiber";
+import {SoundToTextUtility} from "../components/lobby/SoundToTextUtility";
 
 const staticListeners = [
     "aquil",
@@ -45,7 +47,7 @@ function PeerVideo(props: PeerVidProp){
 
     return (
 
-            <video autoPlay playsInline ref={ref}></video> 
+            <video autoPlay playsInline ref={ref}></video>
     );
 }
 
@@ -106,6 +108,18 @@ export default function Lobby(props: PropsType) {
         return peer;
     }
 
+    function convertFloat32ToInt16(buffer: any) {
+        let l = buffer.length;
+        let buf = new Int16Array(l / 3);
+
+        while (l--) {
+            if (l % 3 === 0) {
+                buf[l / 3] = buffer[l] * 0xFFFF;
+            }
+        }
+        return buf.buffer
+    }
+
     useEffect(() => {
         CampfireApi.getCampfireRole(lobbyId)
             .then((res) => {
@@ -121,16 +135,26 @@ export default function Lobby(props: PropsType) {
                     const role = json.data.getCampfireRole;
                     setIsNarrator(role === "owner");
                     // create websocket between server and client when joining the room
-                    socketRef.current = io(process.env.REACT_APP_BACKENDURL? process.env.REACT_APP_BACKENDURL: "/" , 
+                    socketRef.current = io(process.env.REACT_APP_BACKENDURL? process.env.REACT_APP_BACKENDURL: "/" ,
                         {withCredentials: true,
                         extraHeaders:{
                            "cfstorylobby": lobbyId
                         }
                     });
                     socketRef.current.connect();
-                    navigator.mediaDevices.getUserMedia({video: false, audio: true}).then(stream =>{
+                    let soundTextUtility = new SoundToTextUtility();
+                    if (role === "owner") {
+                        soundTextUtility.initStreaming(socketRef.current);
+                    }
+
+                    navigator.mediaDevices.getUserMedia({video: false, audio: true}).then(stream => {
                         userStream.current!.srcObject = stream;
                         if(socketRef.current){
+                            if (role === "owner") {
+                                soundTextUtility.listenToStream(stream, socketRef.current, (error) => {
+                                    console.log(error);
+                                });
+                            }
                             socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
                                 let temppeers:peersRefType[] = [];
@@ -163,7 +187,7 @@ export default function Lobby(props: PropsType) {
                                     if (peers){
                                         return [...peers, {peerId: payload.callerID, peer}];
                                     }else{
-                                       return [{peerId: payload.callerID, peer}]; 
+                                       return [{peerId: payload.callerID, peer}];
                                     }});
                             });
 
@@ -192,6 +216,8 @@ export default function Lobby(props: PropsType) {
                             });
 
                             socketRef.current.on("ownerleft", (id,message) => {
+                                soundTextUtility.stopRecording(socketRef.current);
+
                                 const peerObj = peersRef.current.find(p => p.peerId === id);
                                 if(peerObj) {
                                     // destroy the peer session
@@ -233,7 +259,7 @@ export default function Lobby(props: PropsType) {
                 </div>
             </nav>
             {/* this client's call, where userStream is set */}
-            <video muted autoPlay playsInline ref={userStream}></video> 
+            <video muted autoPlay playsInline ref={userStream}></video>
             {peers.map((peer) => {
                 return (
                     <PeerVideo key={peer.peerId} peer={peer.peer} />
@@ -277,7 +303,6 @@ function NarratorView(props: {
     const [listeners, setListeners] = useState([]);
     const [images, setImages] = useState<Array<string>>([]);
     const [selected, setSelected] = useState(0);
-
 
     function handleStatusChange(oldStatus: number, newStatus: number) {
         setStatus(newStatus);
