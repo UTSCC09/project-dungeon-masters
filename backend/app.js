@@ -184,6 +184,7 @@ const RootQueryType = new GraphQLObjectType({
                     return filter;
                 };
                 return Campfire.find(filter(args.owned, args.follower))
+                    .sort({date: -1})
                     .skip(args.page !== -1 ? args.page * 10 : 0)
                     .limit(args.page !== -1 ? 10 : 0);
             },
