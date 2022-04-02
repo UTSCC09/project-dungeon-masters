@@ -10,19 +10,23 @@ export interface ServerToClientEvents {
     userleft: (id: string) => any;
     ownerleft: (id: string, message:string) => any;
   }
-  
+
 export interface ClientToServerEvents {
     hello: () => void;
     sendingsignal: (payload: SendPayload) => any;
     returningsignal: (payload: ReturnPayload) => void;
     disconnect: () => void;
     joinroom: (lobbyId: string) => any;
+    narratorText: (message: string) => any;
+    startGoogleCloudStream: () => void;
+    binaryAudioData: (data: any) => void;
+    endGoogleCloudStream: () => void;
   }
-  
+
 export interface InterServerEvents {
     ping: () => void;
   }
-  
+
 export interface SocketData {
     name: string;
     age: number;
@@ -30,7 +34,7 @@ export interface SocketData {
 
 export interface SendPayload {
     userToSignal: string; // which users to send signal to
-    callerID: string; // the 
+    callerID: string; // the
     signal: Peer.SignalData;
 
 }

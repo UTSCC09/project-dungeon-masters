@@ -139,7 +139,8 @@ const signOutUser = (req, res) => {
     );
 };
 
-const { naturalLanguage } = require("./CampFireSound/googleNLApi");
+const {soundFXCaller} = require("./CampFireSound/SoundFXCaller");
+const {startRecognitionStream, speechToText} = require("./CampFireSound/googleSpeechToTextApi");
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -217,7 +218,7 @@ const RootQueryType = new GraphQLObjectType({
                 text: { type: GraphQLString },
             },
             resolve: async (source, args, context) => {
-                return soundFXCaller.determineSFXCalls(args.text);
+                return await soundFXCaller.determineSFXCalls(args.text);
             }
         }
     }),
@@ -668,6 +669,10 @@ io.on("connection", (socket) => {
         );
         // if disconnecting owner
         // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
+        Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
+            speechToText.stopRecognitionStream();
+            socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
+        });
         Campfire.findOneAndUpdate(
             { ownerSocketId: socket.id },
             { ownerSocketId: "" },
@@ -679,6 +684,19 @@ io.on("connection", (socket) => {
                 });
             }
         );
+    });
+
+    socket.on('startGoogleCloudStream', () => {
+        console.log("Starting google cloud speech to text")
+        speechToText.startRecognitionStream(socket)
+    });
+
+    socket.on('binaryAudioData', (data) => {
+        speechToText.receiveData(data);
+    });
+
+    socket.on('endGoogleCloudStream', () => {
+        speechToText.stopRecognitionStream();
     });
 });
 
