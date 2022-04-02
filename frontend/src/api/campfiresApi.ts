@@ -22,6 +22,29 @@ export class CampfireApi extends BaseGraphqlApi {
         return this.graphQLCall(query, variables);
     };
 
+    static queryCampfiresByTitle = async (
+        title: string,
+        owned: boolean,
+        follower: boolean,
+        responseFields = [""],
+        page = -1,
+    ) => {
+        let query = `query QueryCampfires($title: String, $owned: Boolean, $follower: Boolean, $page: Int) {
+                        campfires(title: $title, owned: $owned, follower: $follower, page: $page) {
+                          ${this.generateResponseFields(responseFields)}
+                        }
+                      }`;
+
+        let variables = {
+            title: title,
+            owned: owned,
+            follower: follower,
+            page: page,
+        };
+
+        return this.graphQLCall(query, variables);
+    };
+
     static addCampfire = async (
         campfireData: any,
         responseFields = [""]

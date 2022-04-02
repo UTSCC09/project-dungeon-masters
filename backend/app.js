@@ -163,12 +163,13 @@ const RootQueryType = new GraphQLObjectType({
                 owned: { type: GraphQLBoolean },
                 follower: { type: GraphQLBoolean },
                 page: { type: GraphQLInt },
+                title: { type: GraphQLString }
             },
             resolve: async (source, args, context) => {
                 if (args.campfireId !== undefined && args.campfireId !== "")
                     return [Campfire.findById(args.campfireId)];
 
-                let filter = (owned, follower) => {
+                let filter = (owned, follower, match) => {
                     let filter = { $or: [] };
                     if (owned)
                         filter.$or.push({
@@ -177,13 +178,17 @@ const RootQueryType = new GraphQLObjectType({
                     if (follower)
                         filter.$or.push({
                             followers: {
-                                username: { $in: context.session.username },
+                                $elemMatch: { username: context.session.username },
                             },
                         });
                     if (filter.$or.length === 0) filter = {};
+
+                    if (match)
+                        return {$and:[{title: {$regex: match, $options: "i"}}, filter]};
+
                     return filter;
                 };
-                return Campfire.find(filter(args.owned, args.follower))
+                return Campfire.find(filter(args.owned, args.follower, args.title))
                     .sort({date: -1})
                     .skip(args.page !== -1 ? args.page * 10 : 0)
                     .limit(args.page !== -1 ? 10 : 0);
