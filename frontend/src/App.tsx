@@ -66,8 +66,12 @@ function App() {
         if(!isLoggedin){
             navigate("/login");
         }
-        loadRecentLobbies();
+        // loadRecentLobbies();
     }, []);
+
+    useEffect(() => {
+        loadRecentLobbies();
+    }, [page]);
 
     return (
         <div className="App">
@@ -109,8 +113,9 @@ function App() {
             <LobbyList
                 lobbies={lobbies}
                 navigateFunc={navigate}
-                loadPrevFunc={() => {}}
-                loadNextFunc={() => {}}
+                loadPrevFunc={() => setPage(page-1)}
+                loadNextFunc={() => setPage(page+1)}
+                page={page}
             />
         </div>
     );

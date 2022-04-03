@@ -7,7 +7,7 @@ FROM node:14-alpine3.14 as build
 WORKDIR /
 ENV PATH /node_modules/.bin:$PATH
 COPY package.json ./
-COPY package-lock.json ./
+#COPY package-lock.json ./
 # COPY public/ public
 # COPY src/ src
 RUN npm i

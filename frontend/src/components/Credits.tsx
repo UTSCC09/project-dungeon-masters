@@ -12,6 +12,9 @@ export function Credits(){
             <li>
             <div> add Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik"> Freepik </a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com'</a></div>
             </li>
+            <li>
+            <a href="https://www.flaticon.com/free-icons/landscape" title="landscape icons">Landscape icons created by Freepik - Flaticon</a>
+            </li>
         </ul>
         Code snippet from:
         <ul>

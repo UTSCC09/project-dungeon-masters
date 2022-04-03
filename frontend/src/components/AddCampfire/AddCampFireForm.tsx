@@ -119,7 +119,6 @@ export function AddCampFireForm() {
 
     const uploadThumbnail = async () => {
         if (campfire.thumbnail) {
-            console.log("submit with thumbnail");
             await api.addImage(campfire.thumbnail).then(handleSubmit);
         } else {
             handleSubmit(null);
