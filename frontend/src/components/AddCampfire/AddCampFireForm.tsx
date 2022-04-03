@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LobbyList from "../3d/LobbyList";
-import { api } from "../api";
+import { api } from "../../api/imageApi";
 import { AddCampFireInfoForm } from "./AddCampFireInfoForm";
 import { AddCampFireSceneForm } from "./AddCampFireSceneForm";
 import { CampfireApi, CampfireFields } from "../../api/campfiresApi";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 export interface CampFire {
     title: string;
@@ -60,6 +61,7 @@ export function AddCampFireForm() {
         id: "",
         title: "",
     });
+    const [copied, setCopied] = useState(false);
 
     const navigate = useNavigate();
 
@@ -70,17 +72,24 @@ export function AddCampFireForm() {
                 break;
             case 1:
                 setTitle("Add Scenes for the Campfire");
+                validateInfo();
                 break;
             case 2:
                 setErrorMessage("");
                 uploadThumbnail();
-                setTitle("Your Campfire is ready");
+                setTitle("Preparing your campfire");
                 break;
         }
         // return () => {
         //     setPage(0);
         // }
     }, [page]);
+
+    useEffect(() => {
+        if(lobby.id !== "" && page === 2){
+            setTitle("Your campfire is ready");
+        }
+    },[lobby.id]);
 
     const validateInfo = () => {
         let valid = true;
@@ -101,6 +110,8 @@ export function AddCampFireForm() {
         }
         if (!valid) {
             setErrorMessage(eMessage);
+        }else{
+            setErrorMessage("");
         }
         return valid;
     };
@@ -119,12 +130,15 @@ export function AddCampFireForm() {
 
     const uploadThumbnail = async () => {
         if (campfire.thumbnail) {
-            console.log("submit with thumbnail");
             await api.addImage(campfire.thumbnail).then(handleSubmit);
         } else {
             handleSubmit(null);
         }
     };
+
+    const goToLobby = () => {
+        navigate("/lobby/" + lobby.id);
+    }
 
     const handleSubmit = async (res: any) => {
         try {
@@ -205,14 +219,28 @@ export function AddCampFireForm() {
                         Submit
                     </div>
                 ) : (
-                    <div className="m-1 mr-5 pr-4 text-white">
-                        <Link to="/">Confirm</Link>
-                    </div>
+                    lobby.id !== "" &&
+                    (<div
+                        className=" h-5 w-15 mr-5 pl-8 text-white btn btn_next"
+                        onClick={goToLobby}
+                    >
+                        Enter Campfire
+                    </div>)
                 )}
             </div>
-            <div id="error" className="text-bright text-center">
-                {errorMessage}
-            </div>
+            {errorMessage !== "" ? (
+                <div className="bg-red-200 absolute top-[30%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2 py-1 rounded z-10">
+                    <div>{errorMessage}</div>
+                    <button
+                        className="absolute right-0 top-0 bg-red-600 rounded-full translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-cover"
+                        style={{ backgroundImage: `url(/remove.png)` }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setErrorMessage("");
+                        }}
+                    ></button>
+                </div>
+            ) : null}
             <form className="w-full h-full place-self-center">
                 {page === 0 && (
                     <AddCampFireInfoForm
@@ -228,9 +256,34 @@ export function AddCampFireForm() {
                     />
                 )}
                 {page === 2 && (
-                    <div className="text-bright text-center">
-                        {lobby.id}: {lobby.title}
-                    </div>
+                    lobby.id == "" ?
+                        (<div className="p-4 m-auto my-20 max-w-xl bg-white dark:bg-gray-700 rounded-xl shadow-lg text-white text-lg text-center">
+                            <div>Lighting up you campfire</div>
+                            <div className="lds-ellipsis"><div></div><div></div><div></div><div></div></div></div>
+                        )
+                        :
+                        (<div className="p-4 m-auto my-20 max-w-xl bg-white dark:bg-gray-700 rounded-xl shadow-lg text-white text-center">
+                            <div className="text-lg">Your campfire {lobby.title} is ready! Invite your friend with the following link:</div>
+                            <label className='p-4 w-full text-black dark:text-white shrink-0'>
+                            Link
+                            <input type="text" className="m-4 text-black bg-gray-200 w-4/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
+                                value={process.env.REACT_APP_BACKENDURL + "/lobby/" + lobby.id}
+                                readOnly
+                            />
+                            <CopyToClipboard text={process.env.REACT_APP_BACKENDURL + "/lobby/" + lobby.id}>
+                            <button className="h-8 w-15 p-3 text-white btn btn_copy bg-grey-800 rounded-md"
+                                    onClick={(e) => {
+                                    e.preventDefault();
+                                    setCopied(true);}}>
+                                    </button>
+                            </CopyToClipboard>
+                            </label>
+                            {copied && (
+                                <div>
+                                    copied!
+                                </div>
+                            )}
+                        </div>)   
                 )}
             </form>
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import staticData from "../assets/staticData/lobbies";
 import {UserApi, UserFields} from "../api/userApi";
 import {CampfireApi, CampfireFields} from "../api/campfiresApi";
@@ -13,7 +13,7 @@ export default function Profile(props: PropsType) {
     let [username] = useState(cookies.username || "");
     let [links, setLinks] = useState(["", ""]);
     let [description, setDescription] = useState("");
-    let since = "1970/1/1";
+    let [since, setSince]= useState("1970/1/1");
     let [lobbies, setLobbies] = useState(staticData);
 
     const navigate = useNavigate();
@@ -60,7 +60,7 @@ export default function Profile(props: PropsType) {
 
     function getLobbiesFromAPI() {
 
-        CampfireApi.queryCampfires(true, false, [CampfireFields.ownerUsername,
+        CampfireApi.queryCampfires(true, false, [CampfireFields.id, CampfireFields.ownerUsername,
             CampfireFields.title, CampfireFields.description, CampfireFields.status, CampfireFields.followers])
             .then((res) => {
                 if (res) {
@@ -85,6 +85,7 @@ export default function Profile(props: PropsType) {
                     setLobbies(
                         json.data.campfires.map((item: any) => {
                             return {
+                                lobbyId: item._id,
                                 ownerId: item.ownerUsername,
                                 title: item.title,
                                 description: item.description,
@@ -132,6 +133,7 @@ export default function Profile(props: PropsType) {
                         navigate("/");
                     }}
                 ></button>
+                <Link className="mr-4 text-white" to="/credits">Credits</Link>
             </nav>
             {errorMessage === "" ? null : (
                 <div className="bg-red-100 text-center text-lg">
@@ -183,7 +185,7 @@ export default function Profile(props: PropsType) {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         // TODO: Navigate to the correct lobby
-                                        navigate("/");
+                                        navigate("/lobby/" + item.lobbyId);
                                     }}
                                     className="font-bold underline text-center text-3xl mb-4"
                                 >
@@ -233,9 +235,9 @@ function UserInfoDisplay(props: {
                 <div className=" border-solid border-gray-400 border-r-4 mr-2"></div>
                 <p>{description}</p>
             </div>
-            <p className="absolute italic bottom-3 right-6 text-right">
+            {/* <p className="absolute italic bottom-3 right-6 text-right">
                 Since: {since}
-            </p>
+            </p> */}
             <button
                 onClick={(e) => {
                     handler(e);

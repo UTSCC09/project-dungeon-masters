@@ -10,6 +10,7 @@ import { CookiesProvider } from "react-cookie";
 import Profile from "./routes/Profile";
 import Lobby from "./routes/Lobby";
 import BackGround3D from "./components/3d/BackGround3D";
+import Credits from "./routes/Credits";
 
 ReactDOM.render(
     <React.StrictMode>
@@ -23,6 +24,7 @@ ReactDOM.render(
                     <Route path="/lobby" element={<Lobby />}>
                         <Route path=":lobbyId" element={null} />
                     </Route>
+                    <Route path="/credits" element={<Credits/>}></Route>
                     <Route
                         path="*"
                         element={

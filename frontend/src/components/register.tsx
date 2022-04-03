@@ -40,7 +40,6 @@ const Register = function (props: PropsType) {
         }
         AuthenticationApi.signUp(username, password)
             .then((res) => {
-            console.log(res)
             if (res.username !== null && res.username !== "") {
                 navigate("/");
             } else {

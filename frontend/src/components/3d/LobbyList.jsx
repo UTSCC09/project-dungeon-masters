@@ -19,6 +19,7 @@ export default function LobbyList({
     loadNextFunc,
     loadPrevFunc,
     navigateFunc,
+    page
 }) {
     return (
         <div className="fixed m-0 p-0 w-full h-full">
@@ -50,6 +51,7 @@ export default function LobbyList({
                             loadPrevFunc={loadPrevFunc}
                             scrollFactor={2.5 * (lobbies.length - 1)}
                             navigateFunc={navigateFunc}
+                            page={page}
                         />
                     </ScrollControls>
                 </Suspense>
@@ -58,7 +60,7 @@ export default function LobbyList({
     );
 }
 
-function Frames({ lobbies, scrollFactor, navigateFunc, ...props }) {
+function Frames({ lobbies, scrollFactor, navigateFunc, page, ...props }) {
     const ref = useRef(null);
     const clicked = useRef(null);
     const scroll = useScroll();
@@ -66,7 +68,7 @@ function Frames({ lobbies, scrollFactor, navigateFunc, ...props }) {
     const q = new THREE.Quaternion();
     // Set the destination of the camera to the clicked element.
     useFrame(() => {
-        if (clicked.current) {
+        if (clicked.current && clicked.current.parent) {
             clicked.current.parent.updateWorldMatrix(true, true);
             clicked.current.parent.localToWorld(p.set(0.5, 0.5, 1.25));
             clicked.current.parent.getWorldQuaternion(q);
@@ -84,13 +86,17 @@ function Frames({ lobbies, scrollFactor, navigateFunc, ...props }) {
     useFrame(() => {
         ref.current.position.x = -scroll.offset * (2.5 * (lobbies.length - 1));
     });
+
+    useEffect(()=> {
+        clicked.current = null;
+    }, [lobbies]);
     return (
         <group
             scale={[1, 1, 1]}
             ref={ref}
             onClick={(e) => {
                 e.stopPropagation();
-                if (clicked.current === e.object) {
+                if(e.object.index===-1 || e.object.index === lobbies.length || clicked.current === e.object){
                     clicked.current = null;
                     return;
                 }
@@ -101,11 +107,14 @@ function Frames({ lobbies, scrollFactor, navigateFunc, ...props }) {
                 clicked.current = null;
             }}
         >
-            {props.loadPrevFunc ? (
+            {props.loadPrevFunc && page > 0 ? (
                 <FrameTerminal
                     index={-1}
                     position={[-frameSpacing, 0, 0]}
-                    loadPrevFunc={props.loadPrevFunc}
+                    loadMoreLobbies={() => {
+                                    props.loadPrevFunc();
+                                    scroll.offset = 1;
+                                    ref.current.position.x = -scroll.offset * (2.5 * (lobbies.length - 1));}}
                     scrollFactor={scrollFactor}
                     thumbnail="/prev2.png"
                     {...props}
@@ -122,11 +131,15 @@ function Frames({ lobbies, scrollFactor, navigateFunc, ...props }) {
                     {...props}
                 />
             ))}
-            {props.loadNextFunc ? (
+            {props.loadNextFunc && lobbies.length == 10 ? (
                 <FrameTerminal
                     index={lobbies.length}
                     position={[lobbies.length * frameSpacing, 0, 0]}
-                    loadNextFunc={props.loadNextFunc}
+                    loadMoreLobbies={() => {
+                                    props.loadNextFunc();
+                                    scroll.offset = 0;
+                                    ref.current.position.x = 0;
+                                    }}
                     thumbnail="/next2.png"
                     scrollFactor={scrollFactor}
                     {...props}
@@ -231,7 +244,7 @@ function Frame({
                         ref={image}
                         raycast={() => null}
                         position={[0, 0, 0.7]}
-                        url={thumbnail ? process.env.REACT_APP_BACKENDURL + thumbnail : "/remove.png"}
+                        url={thumbnail ? process.env.REACT_APP_BACKENDURL + thumbnail : "/landscape.png"}
                     />
                 </mesh>
             </mesh>
@@ -290,7 +303,7 @@ function Frame({
 
 function FrameTerminal({
     index,
-    loadNextFunc,
+    loadMoreLobbies,
     thumbnail,
     scrollFactor,
     ...props
@@ -313,9 +326,7 @@ function FrameTerminal({
         <group {...props} ref={groupRef}>
             <mesh
                 onClick={(e) => {
-                    console.log("clicked");
-                    loadNextFunc();
-                    // TODO: Goto next screen?
+                    loadMoreLobbies();
                 }}
                 scale={[1, 1, 0.05]}
                 position={[0, 0.5, 0]}
@@ -337,7 +348,7 @@ function FrameTerminal({
                     <Image
                         raycast={() => null}
                         position={[0, 0, 0.7]}
-                        url={thumbnail || "/remove.png"}
+                        url={thumbnail || "/landscape.png"}
                     />
                 </mesh>
             </mesh>
