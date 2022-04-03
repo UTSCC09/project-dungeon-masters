@@ -18,7 +18,7 @@ import {  SortableScenePhoto } from './AddScene/SortableScenePhotos';
 import { ScenePhoto } from './AddScene/ScenePhoto';
 import "../../index.css";
 import { SwipeableDrawer } from '@mui/material';
-import {api} from "../api";
+import {api} from "../../api/imageApi";
 
 
 

@@ -1,10 +1,22 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Credits() {
+    const navigate = useNavigate();
     return (
         <>
-        Icons
-        <ul>
+        <nav className="flex bg-gray-800 flex-row justify-between py-4 border-b-2 border-gray-900">
+                <button
+                    className="w-6 h-6 ml-4 bg-cover invert"
+                    style={{ backgroundImage: `url(/left-arrow.png)` }}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/profile");
+                    }}
+                ></button>
+        </nav>
+        <div className="text-center underline text-xl">Icons</div>
+        <ul className="text-center">
             <li><a
                 href="https://www.flaticon.com/free-icons/arrow"
                 title="arrow icons"
@@ -86,10 +98,13 @@ export default function Credits() {
             </li>
             <li>
             <a href="https://www.flaticon.com/free-icons/landscape" title="landscape icons">Landscape icons created by Freepik - Flaticon</a>
-            </li>            
+            </li>   
+            <li>
+            <a href="https://www.flaticon.com/free-icons/layer" title="layer icons">Layer icons created by Freepik - Flaticon</a>
+            </li>         
         </ul>
-        Code snippet from:
-        <ul>
+        <div className="text-center underline text-xl">Code snippet from:</div>
+        <ul className="text-center">
             <li>
             <a href="https://github.com/jcmcneal/react-step-wizard">React step wizard</a>
             </li>
@@ -102,9 +117,12 @@ export default function Credits() {
             <li>
                 <a href="https://codesandbox.io/s/xu7kg7?file=/demo.js">Swipeable Drawers</a>
             </li>
+            <li>
+                <a href="https://loading.io/css/">Loading animation</a>
+            </li>
         </ul>
-        Tutorials from:
-        <ul>
+        <div className="text-center underline text-xl">Tutorials from:</div>
+        <ul className="text-center">
             <li>
                 <a href="https://www.geeksforgeeks.org/upload-and-retrieve-image-on-mongodb-using-mongoose/">upload and retrieve image on mongoDB</a>
             </li>

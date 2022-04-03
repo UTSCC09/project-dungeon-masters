@@ -96,5 +96,6 @@ export const UserFields = {
     username: 'username',
     profilePicture: 'profilePicture',
     description: 'description',
-    socialMedia: 'socialMedia {twitter instagram}'
+    socialMedia: 'socialMedia {twitter instagram}',
+    date: 'date'
 };
