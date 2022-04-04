@@ -11,6 +11,7 @@ import { AuthenticationApi } from "./api/authenticationApi";
 
 function App() {
     const searchTextRef = useRef("");
+    const searchInputRef = useRef<HTMLInputElement>(null);
     const [cookies, setCookie, removeCookie] = useCookies(["username"]);
     const [lobbies, setLobbies] = useState([]);
     const [errorMessage, setErrorMessage] = useState("");
@@ -142,6 +143,7 @@ function App() {
                 </div>
                 <div className="bg-gray-600 text-white flex-grow max-w-lg w-72 rounded-full flex flex-row">
                     <input
+                        ref={searchInputRef}
                         className="bg-gray-600 text-white w-full px-4 rounded-full"
                         type="text"
                         placeholder="Search"
@@ -161,6 +163,9 @@ function App() {
                             className="right-0 mr-2 w-6 -ml-8 bg-cover grayscale"
                             style={{ backgroundImage: "url(remove.png)" }}
                             onClick={() => {
+                                if (searchInputRef.current) {
+                                    searchInputRef.current.value = "";
+                                }
                                 searchTextRef.current = "";
                                 setPage(0);
                                 onSearch("");
