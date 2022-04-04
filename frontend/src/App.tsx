@@ -140,20 +140,34 @@ function App() {
                         <Link to="/login">Login</Link>
                     )}
                 </div>
-                <input
-                    className="bg-gray-600 text-white flex-grow max-w-lg mx-8 w-72 px-4 rounded-full"
-                    type="text"
-                    placeholder="Search"
-                    onChange={(e) => {
-                        searchTextRef.current = e.target.value;
-                    }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && searchTextRef.current) {
-                            setPage(0);
-                            onSearch(searchTextRef.current);
-                        }
-                    }}
-                />
+                <div className="bg-gray-600 text-white flex-grow max-w-lg w-72 rounded-full flex flex-row">
+                    <input
+                        className="bg-gray-600 text-white w-full px-4 rounded-full"
+                        type="text"
+                        placeholder="Search"
+                        onChange={(e) => {
+                            searchTextRef.current = e.target.value;
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && searchTextRef.current) {
+                                setPage(0);
+                                onSearch(searchTextRef.current);
+                            }
+                        }}
+                    />
+                    {/* Display this only if the search bar has text */}
+                    {searchTextRef.current && (
+                        <button
+                            className="right-0 mr-2 w-6 -ml-8 bg-cover grayscale"
+                            style={{ backgroundImage: "url(remove.png)" }}
+                            onClick={() => {
+                                searchTextRef.current = "";
+                                setPage(0);
+                                onSearch("");
+                            }}
+                        ></button>
+                    )}
+                </div>
                 <div className="pr-4 text-white">
                     {isLoggedin ? (
                         <a
