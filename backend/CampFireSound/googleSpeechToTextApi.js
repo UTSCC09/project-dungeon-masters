@@ -1,5 +1,6 @@
 // Credit to https://stackoverflow.com/questions/50976084/how-do-i-stream-live-audio-from-the-browser-to-google-cloud-speech-via-socket-io/50976085#50976085
 
+const {soundFXCaller} = require("./SoundFXCaller");
 const speechToText = (function(){
     "use strict";
     const speech = require('@google-cloud/speech');
@@ -11,7 +12,7 @@ const speechToText = (function(){
     /**
      * @param {object} client A socket client on which to emit events
      */
-    module.startRecognitionStream = function (client) {
+    module.startRecognitionStream = function (client, callBack) {
         if(!speechClient) {
             speechClient = new speech.SpeechClient();
         }
@@ -32,18 +33,13 @@ const speechToText = (function(){
                 this.stopRecognitionStream();
             })
             .on('data', (data) => {
-                //TODO: pass data to soundFX caller
-                let final = data.results.map(value => {
-                    if (value.isFinal) {
-                        return value;
-                    }
-                });
-                console.log(final)
+                let results = data.results[0];
+                callBack(results.alternatives[0].transcript);
                 // if end of utterance, let's restart stream
                 // this is a small hack. After 65 seconds of silence, the stream will still throw an error for speech length limit
                 if (data.results[0] && data.results[0].isFinal) {
                     module.stopRecognitionStream();
-                    module.startRecognitionStream(client);
+                    module.startRecognitionStream(client, callBack);
                     // console.log('restarted stream serverside');
                 }
             });

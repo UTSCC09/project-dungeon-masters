@@ -52,9 +52,7 @@ const soundFXCaller = (function(){
 
     let configureEntitiesWithContext = async (data) => {
         let entities = {};
-        // let entitiesIndex = {};
 
-        // let counter = 0
         for (let i = 0; i < data.length; i++) {
             let word = data[i];
             if (word.tag === NOUN && ['NSUBJ', 'POBJ', 'NN'].includes(word.dependencyEdge.label)) {
@@ -62,35 +60,18 @@ const soundFXCaller = (function(){
                     context: [],
                     number: word.number
                 }
-                // entitiesIndex[i] = counter
-                // counter ++
             }
         }
-
-        //TODO: Make use of verbs
-        // for (let i = 0; i < data.length; i++) {
-        //     let word = data[i];
-        //     let indexOfHead = entitiesIndex[word.dependencyEdge.headTokenIndex];
-        //     if (word.tag === VERB && indexOfHead !== undefined) {
-        //         console.log(word.word, indexOfHead, entities[indexOfHead])
-        //         entities[indexOfHead].context = word.word
-        //     }
-        // }
 
         return entities
     }
 
-    module.determineSFXCalls = async (text, soundMappings) => {
+    module.determineSFXCalls = async (text, callback) => {
         let processedData = await dataPreprocessing(text);
-        let entities = {};
-
-        console.log(text)
 
         for (const sentence of processedData) {
-            entities[sentence.sentence] = await configureEntitiesWithContext(sentence.words);
+            callback(await configureEntitiesWithContext(sentence.words));
         }
-
-        return entities;
     }
 
     return module;

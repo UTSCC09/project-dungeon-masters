@@ -109,18 +109,6 @@ export default function Lobby(props: PropsType) {
         return peer;
     }
 
-    function convertFloat32ToInt16(buffer: any) {
-        let l = buffer.length;
-        let buf = new Int16Array(l / 3);
-
-        while (l--) {
-            if (l % 3 === 0) {
-                buf[l / 3] = buffer[l] * 0xFFFF;
-            }
-        }
-        return buf.buffer
-    }
-
     useEffect(() => {
         CampfireApi.getCampfireRole(lobbyId)
             .then((res) => {
