@@ -8,7 +8,8 @@ export interface ServerToClientEvents {
     userjoined: (payload: ReceivePayload) => any;
     receivingreturnedsignal: (payload: ReceiveReturnPayload) => any;
     userleft: (id: string) => any;
-    ownerleft: (id: string, message:string) => any;
+    ownerleft: (payload: OwnerLeftPayload) => any;
+    changeImg: (index: number) => void;
   }
 
 export interface ClientToServerEvents {
@@ -21,6 +22,7 @@ export interface ClientToServerEvents {
     startGoogleCloudStream: () => void;
     binaryAudioData: (data: any) => void;
     endGoogleCloudStream: () => void;
+    changeImg: (index: number) => void;
   }
 
 export interface InterServerEvents {
@@ -67,4 +69,9 @@ export interface PeerVidProp {
 export interface follower{
   socketId: string;
   username: string;
+}
+
+export interface OwnerLeftPayload{
+  id: string;
+  message:string;
 }
