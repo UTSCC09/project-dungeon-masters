@@ -786,16 +786,14 @@ io.on("connection", (socket) => {
     socket.on('startGoogleCloudStream', () => {
         console.log("Starting google cloud speech to text")
         speechToText.startRecognitionStream(socket, (transcript) => {
-            console.log("Transcript: [", transcript, "]");
-            let soundsCalled = [];
-            soundFXCaller.determineSFXCalls(transcript, (entities) => {
+            return soundFXCaller.determineSFXCalls(transcript, (entities) => {
+                let soundsCalled = [];
                 for (const entity in entities) {
-                    console.log("Entity: ", entity, "");
                     SoundEffect.findOne({entity: entity}, {}, {}, (err, soundEffect) => {
                         if (err || !soundEffect) {
                             return;
                         }
-                        console.log("Entity: [", entity, "] found sfx: [", soundEffect.url, "]");
+                        console.log("Before playing: ", soundsCalled, "[", transcript, "]");
                         if (!soundsCalled.includes(entity)) {
                             soundsCalled.push(entity);
                             console.log("Entity: [", entity, "] played sfx: [", soundEffect.url, "]");
@@ -803,7 +801,7 @@ io.on("connection", (socket) => {
                         }
                     })
                 }
-            })
+            });
         });
     });
 

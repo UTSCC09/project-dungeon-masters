@@ -10,6 +10,7 @@ import {SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayl
 import Peer from "simple-peer";
 import {context} from "@react-three/fiber";
 import {SoundToTextUtility} from "../components/lobby/SoundToTextUtility";
+import {sfxPlayer} from "../components/lobby/sfxPlayer";
 
 const staticListeners = [
     "aquil",
@@ -223,7 +224,7 @@ export default function Lobby(props: PropsType) {
                             })
 
                             socketRef.current.on("playSFX", (url) => {
-                                console.log(url)
+                                sfxPlayer.playSound(url);
                             });
                         }
                     });

@@ -8,7 +8,7 @@ export interface ServerToClientEvents {
     userjoined: (payload: ReceivePayload) => any;
     receivingreturnedsignal: (payload: ReceiveReturnPayload) => any;
     userleft: (id: string) => any;
-    ownerleft: (id: string, message:string) => any;
+    ownerleft: (payload: OwnerLeftPayload) => any;
     changeImg: (index: number) => void;
     playSFX: (url:string) => any;
   }

@@ -25,7 +25,8 @@ const speechToText = (function(){
                 profanityFilter: false,
                 enableWordTimeOffsets: true
             },
-            interimResults: true,
+            interimResults: false,
+            singleUtterance: true
         })
             .on('error', (err) => {
                 console.error('Error when processing audio: ' + (err && err.code ? 'Code: ' + err.code + ' ' : '') + (err && err.details ? err.details : ''));
@@ -33,14 +34,13 @@ const speechToText = (function(){
                 this.stopRecognitionStream();
             })
             .on('data', (data) => {
-                let results = data.results[0];
-                callBack(results.alternatives[0].transcript);
-                // if end of utterance, let's restart stream
-                // this is a small hack. After 65 seconds of silence, the stream will still throw an error for speech length limit
-                if (data.results[0] && data.results[0].isFinal) {
+                if (data.speechEventType === 'END_OF_SINGLE_UTTERANCE') {
+                    console.log("END of utterance")
                     module.stopRecognitionStream();
                     module.startRecognitionStream(client, callBack);
-                    // console.log('restarted stream serverside');
+                } else {
+                    let results = data.results[0];
+                    callBack(results.alternatives[0].transcript);
                 }
             });
     },
