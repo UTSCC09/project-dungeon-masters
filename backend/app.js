@@ -27,12 +27,18 @@ const saltRounds = 10;
 
 const cookie = require("cookie");
 
-const http = require("http");
+const https = require("https");
 const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
 const PORT = 4000;
-const server = http.createServer(app);
+const privateKey = fs.readFileSync( 'server.key' );
+const certificate = fs.readFileSync( 'server.crt' );
+const config = {
+    key: privateKey,
+    cert: certificate
+};
+const server = https.createServer(config, app);
 
 const session = require("express-session")({
     secret: process.env.SESSION_SECRET,
@@ -41,7 +47,7 @@ const session = require("express-session")({
     cookie: {
         path: "/",
         httpOnly: true,
-        secure: false,
+        secure: true,
         maxAge: null,
         sameSite: true,
     },
@@ -816,5 +822,5 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, function (err) {
     if (err) console.log(err);
-    else console.log("HTTP server on http://localhost:%s", PORT);
+    else console.log("HTTPs server on https://localhost:%s", PORT);
 });
