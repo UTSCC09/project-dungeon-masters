@@ -10,6 +10,7 @@ import {SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayl
 import Peer from "simple-peer";
 import {context} from "@react-three/fiber";
 import {SoundToTextUtility} from "../components/lobby/SoundToTextUtility";
+import {sfxPlayer} from "../components/lobby/sfxPlayer";
 
 const staticListeners = [
     "aquil",
@@ -107,18 +108,6 @@ export default function Lobby(props: PropsType) {
 
         peer.signal(incomingSignal);
         return peer;
-    }
-
-    function convertFloat32ToInt16(buffer: any) {
-        let l = buffer.length;
-        let buf = new Int16Array(l / 3);
-
-        while (l--) {
-            if (l % 3 === 0) {
-                buf[l / 3] = buffer[l] * 0xFFFF;
-            }
-        }
-        return buf.buffer
     }
 
     useEffect(() => {
@@ -233,6 +222,10 @@ export default function Lobby(props: PropsType) {
                             socketRef.current.on("changeImg", (index) => {
                                 setSelected(index);
                             })
+
+                            socketRef.current.on("playSFX", (url) => {
+                                sfxPlayer.playSound(url);
+                            });
                         }
                     });
                 } else {

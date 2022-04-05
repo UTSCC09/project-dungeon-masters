@@ -10,6 +10,7 @@ export interface ServerToClientEvents {
     userleft: (id: string) => any;
     ownerleft: (payload: OwnerLeftPayload) => any;
     changeImg: (index: number) => void;
+    playSFX: (url:string) => any;
   }
 
 export interface ClientToServerEvents {

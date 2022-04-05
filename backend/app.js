@@ -81,6 +81,8 @@ const storage = multer.diskStorage({
     },
 });
 const upload = multer({ storage: storage });
+const { promisify } = require('util')
+const unlinkAsync = promisify(fs.unlink);
 
 app.use(session);
 
@@ -108,6 +110,7 @@ const {
 } = require("./GraphqlTypes/CampfireType");
 
 const Image = require("./models/imageModel");
+const SoundEffect = require("./models/soundEffectModel");
 
 const isAuthenticated = (req, res, next) => {
     if (!req.session.username) return res.status(401).end("access denied");
@@ -125,7 +128,14 @@ const signInUser = (req, res, user) => {
             sameSite: true,
         })
     );
-    return res.json(user);
+    return res.json({
+        socialMedia: user.socialMedia,
+        date: user.date,
+        _id: user._id,
+        username: user.username,
+        profilePicture: user.profilePicture,
+        description: user.description
+    });
 };
 
 const signOutUser = (req, res) => {
@@ -140,7 +150,7 @@ const signOutUser = (req, res) => {
 };
 
 const {soundFXCaller} = require("./CampFireSound/SoundFXCaller");
-const {startRecognitionStream, speechToText} = require("./CampFireSound/googleSpeechToTextApi");
+const {speechToText} = require("./CampFireSound/googleSpeechToTextApi");
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -217,16 +227,6 @@ const RootQueryType = new GraphQLObjectType({
                 return "none";
             },
         },
-        analyzeText: {
-            //TODO: Remove, just for developing
-            type: GraphQLJSON,
-            args: {
-                text: { type: GraphQLString },
-            },
-            resolve: async (source, args, context) => {
-                return await soundFXCaller.determineSFXCalls(args.text);
-            }
-        }
     }),
 });
 
@@ -527,6 +527,58 @@ app.post(
                 );
             }
         });
+
+        unlinkAsync(__dirname + "/uploads/" + req.file.filename)
+    }
+);
+
+//TODO: Remove
+app.post(
+    "/api/audio/",
+    isAuthenticated,
+    upload.single("file"),
+    function (req, res, next) {
+        let obj = {
+            entity: req.body.entity,
+            context: req.body.context,
+            sfx: {
+                data: Buffer.from(
+                    fs
+                        .readFileSync(
+                            join(__dirname + "/uploads/" + req.file.filename)
+                        )
+                        .toString("base64"),
+                    "base64"
+                ),
+                contentType: req.file.mimetype,
+                path: req.file.path,
+            },
+            url: "",
+        };
+
+        SoundEffect.create(obj, (err, sfx) => {
+            if (err) {
+                return res.status(500).end(err);
+            } else {
+                SoundEffect.findOneAndUpdate(
+                    {
+                        _id: sfx._id,
+                    },
+                    {
+                        url: "/api/audio/sfx/" + sfx._id,
+                    },
+                    { new: true },
+                    (err, newImage) => {
+                        if (err) {
+                            return res.status(500).end(err);
+                        }
+                        res.json({ url: "/api/audio/sfx/" + sfx._id });
+                    }
+                );
+            }
+        });
+
+        unlinkAsync(__dirname + "/uploads/" + req.file.filename)
     }
 );
 
@@ -542,6 +594,22 @@ app.get("/api/images/picture/:id", function (req, res, next) {
         } else {
             res.setHeader("Content-Type", image.img.contentType);
             res.send(image.img.data);
+        }
+    });
+});
+
+app.get("/api/audio/sfx/:id", function (req, res, next) {
+    SoundEffect.findById(req.params.id, function (err, soundEffect) {
+        if (err) {
+            return res.status(500).end(err.toString());
+        }
+        if (!soundEffect) {
+            return res
+                .status(404)
+                .end("Sound effect with id:" + req.params.id + " does not exist.");
+        } else {
+            res.setHeader("Content-Type", soundEffect.sfx.contentType);
+            res.send(soundEffect.sfx.data);
         }
     });
 });
@@ -627,7 +695,7 @@ io.on("connection", (socket) => {
                                 );
                             } else if (campfire.followers.length < 16) {
                                 // if session.username is same as owner, add a field that keeps it's socket
-                                
+
                                 if (campfire.followers.find((follower) => follower.username === socSession.username && follower.socketId === "")){
                                         Campfire.findOneAndUpdate(
                                             { _id: lobbyId, "followers.username": socSession.username },
@@ -717,7 +785,24 @@ io.on("connection", (socket) => {
 
     socket.on('startGoogleCloudStream', () => {
         console.log("Starting google cloud speech to text")
-        speechToText.startRecognitionStream(socket)
+        speechToText.startRecognitionStream(socket, (transcript) => {
+            return soundFXCaller.determineSFXCalls(transcript, (entities) => {
+                let soundsCalled = [];
+                for (const entity in entities) {
+                    SoundEffect.findOne({entity: entity}, {}, {}, (err, soundEffect) => {
+                        if (err || !soundEffect) {
+                            return;
+                        }
+                        console.log("Before playing: ", soundsCalled, "[", transcript, "]");
+                        if (!soundsCalled.includes(entity)) {
+                            soundsCalled.push(entity);
+                            console.log("Entity: [", entity, "] played sfx: [", soundEffect.url, "]");
+                            io.emit("playSFX", soundEffect.url);
+                        }
+                    })
+                }
+            });
+        });
     });
 
     socket.on('binaryAudioData', (data) => {

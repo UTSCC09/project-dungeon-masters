@@ -7,8 +7,13 @@ const soundEffectSchema = new mongoose.Schema({
     },
     context: {
         type: String,
-        required: true
     },
+    sfx: {
+        data: Buffer,
+        contentType:String,
+        path: String
+    },
+    url: String,
 })
 
-module.exports = mongoose.model("soundEffect", soundEffectSchema);
+module.exports = mongoose.model("SoundEffect", soundEffectSchema);
