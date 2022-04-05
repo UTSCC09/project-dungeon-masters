@@ -3,13 +3,6 @@ import { InfoProp, CampFire } from './AddCampFireForm';
 export function AddCampFireInfoForm(props: InfoProp) {
     let { setCampfire, campfire} = props;
 
-
-    // const campNameRef = useRef<HTMLInputElement | null>(null);
-    // const campDescriptionRef = useRef<HTMLTextAreaElement | null>(null);
-    // const campInvitation = useRef<HTMLInputElement | null>(null);
-    // const campPasswordRef = useRef<HTMLInputElement | null>(null);
-    // const campThumbNailRef = useRef<HTMLInputElement | null>(null);
-
     const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
         setCampfire({...campfire, [e.currentTarget.name]: e.currentTarget.value});
         
@@ -52,6 +45,7 @@ export function AddCampFireInfoForm(props: InfoProp) {
                 value={campfire.description} 
                 onChange={handleTextAreaChange} required></textarea>
         </label>
+        {/* hidden, implement if time allow
         <label className='p-4 w-full text-black dark:text-white shrink-0 '>
             Invitation Only
             <input type="checkbox" className="m-4 text-black bg-gray-200 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
@@ -68,7 +62,7 @@ export function AddCampFireInfoForm(props: InfoProp) {
                 placeholder="Enter a passcode"
                 onChange={handleChange}/>
             </label>
-        }
+        } */}
         { !campfire.thumbnail ?
                 <label className='p-4 w-full text-black dark:text-white shrink-0'>
                 Thumbnail

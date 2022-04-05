@@ -556,17 +556,22 @@ io.use(
 // emit is pushing an event to trigger on
 io.on("connection", (socket) => {
     function SendAllUserSockets(err, campfire) {
+        if(err) {
+            console.log(err);
+            res.send(err);
+            return;}
         const joinedSocketsInRoom = campfire.followers.filter(
             (follower) =>
                 follower.socketId &&
                 follower.socketId !== socket.id &&
                 follower.socketId !== ""
         );
-        joinedSocketsInRoom.push({
-            username: campfire.ownerUsername,
-            socketId: campfire.ownerSocketId,
-        });
-        console.log(joinedSocketsInRoom);
+        if(campfire.ownerUsername !== socSession.username){
+            joinedSocketsInRoom.push({
+                username: campfire.ownerUsername,
+                socketId: campfire.ownerSocketId,
+            });
+        }
         socket.emit("allusers", joinedSocketsInRoom);
     }
 
@@ -622,19 +627,33 @@ io.on("connection", (socket) => {
                                 );
                             } else if (campfire.followers.length < 16) {
                                 // if session.username is same as owner, add a field that keeps it's socket
-                                Campfire.findOneAndUpdate(
-                                    { _id: lobbyId },
-                                    {
-                                        $addToSet: {
-                                            followers: {
-                                                username: socSession.username,
-                                                socketId: socket.id,
+                                
+                                if (campfire.followers.find((follower) => follower.username === socSession.username && follower.socketId === "")){
+                                        Campfire.findOneAndUpdate(
+                                            { _id: lobbyId, "followers.username": socSession.username },
+                                            {
+                                                $set: {
+                                                    "followers.$.socketId": socket.id,
+                                                    },
+                                            },
+                                            { new: true },
+                                            SendAllUserSockets
+                                        );
+                                }else{
+                                    Campfire.findOneAndUpdate(
+                                        { _id: lobbyId },
+                                        {
+                                            $addToSet: {
+                                                followers: {
+                                                    username: socSession.username,
+                                                    socketId: socket.id,
+                                                },
                                             },
                                         },
-                                    },
-                                    { new: true },
-                                    SendAllUserSockets
-                                );
+                                        { new: true },
+                                        SendAllUserSockets
+                                    );
+                                }
                             } else {
                                 socket.emit(
                                     "error",
@@ -667,30 +686,34 @@ io.on("connection", (socket) => {
         // if disconnecting a follower
 
         Campfire.findOneAndUpdate(
-            { followers: { socketId: socket.id } },
-            { followers: { socketId: "" } },
+            { "followers.socketId": socket.id },
+            {
+                $set: { "followers.$.socketId": "" }
+            },
+            { new: true },
             function (err, campfire) {
-                socket.broadcast.emit("userleft", socket.id);
-            }
-        );
-        // if disconnecting owner
-        // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
-        Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
-            speechToText.stopRecognitionStream();
-            socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
-        });
-        Campfire.findOneAndUpdate(
-            { ownerSocketId: socket.id },
-            { ownerSocketId: "" },
-            function (err, campfire) {
-                socket.broadcast.emit("ownerleft", {
-                    id: socket.id,
-                    message:
-                        "The narrator has left the campfire, you will be redirected to the home page.",
-                });
+                if(err) {
+                    console.log(err);
+                    res.send(err);
+                    return;
+                }
+                if(campfire){
+                    socket.broadcast.emit("userleft", socket.id);
+                }else{
+                    // if disconnecting owner
+                    // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
+                    Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
+                        speechToText.stopRecognitionStream();
+                        socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
+                    });
+                }
             }
         );
     });
+
+    socket.on("changeImg", (index) => {
+        socket.broadcast.emit("changeImg", index);
+    })
 
     socket.on('startGoogleCloudStream', () => {
         console.log("Starting google cloud speech to text")

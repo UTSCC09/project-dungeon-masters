@@ -16,7 +16,7 @@ const BackGround3D = function (props: PropsType) {
         <div className="fixed m-0 p-0 w-full h-full">
             <Canvas>
                 <CameraControls autoRotate={autoRotate} />
-                <Skybox path={path} paths={paths} />
+                <Skybox className="transition-all" path={path} paths={paths} />
             </Canvas>
             {component}
         </div>

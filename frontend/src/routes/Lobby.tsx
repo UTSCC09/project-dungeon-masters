@@ -6,7 +6,7 @@ import BackGround3D from "../components/3d/BackGround3D";
 import Listeners from "../components/lobby/Listeners";
 import {io, Socket} from "socket.io-client";
 import {ServerToClientEvents, ClientToServerEvents, InterServerEvents, follower} from "../components/lobby/socketsInterfaces";
-import {SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp, ReturnPayload} from "../components/lobby/socketsInterfaces";
+import {SocketData, SendPayload, ReceivePayload, peersRefType, ReceiveReturnPayload, PeerVidProp, ReturnPayload, OwnerLeftPayload} from "../components/lobby/socketsInterfaces";
 import Peer from "simple-peer";
 import {context} from "@react-three/fiber";
 import {SoundToTextUtility} from "../components/lobby/SoundToTextUtility";
@@ -47,7 +47,7 @@ function PeerVideo(props: PeerVidProp){
 
     return (
 
-            <video autoPlay playsInline ref={ref}></video>
+            <video hidden autoPlay playsInline ref={ref}></video>
     );
 }
 
@@ -56,6 +56,7 @@ export default function Lobby(props: PropsType) {
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState("");
     const [isNarrator, setIsNarrator] = useState(false);
+    const [selected, setSelected] = useState(0);
 
     //for webRTC
     const userStream = useRef<HTMLVideoElement>(null);
@@ -211,25 +212,27 @@ export default function Lobby(props: PropsType) {
                             });
 
                             socketRef.current.on("error", (message) => {
-                                console.log("error", message);
                                 setErrorMessage(message);
                             });
 
-                            socketRef.current.on("ownerleft", (id,message) => {
+                            socketRef.current.on("ownerleft", (payload) => {
                                 soundTextUtility.stopRecording(socketRef.current);
 
-                                const peerObj = peersRef.current.find(p => p.peerId === id);
+                                const peerObj = peersRef.current.find(p => p.peerId === payload.id);
                                 if(peerObj) {
                                     // destroy the peer session
                                     peerObj.peer.destroy();
                                 }
                                 // remove the destroyed peer
-                                const peers = peersRef.current.filter(p => p.peerId !== id);
+                                const peers = peersRef.current.filter(p => p.peerId !== payload.id);
                                 peersRef.current = peers;
-
                                 setPeers(peers);
-                                setErrorMessage(message);
+                                setErrorMessage(payload.message);
                             });
+
+                            socketRef.current.on("changeImg", (index) => {
+                                setSelected(index);
+                            })
                         }
                     });
                 } else {
@@ -259,7 +262,7 @@ export default function Lobby(props: PropsType) {
                 </div>
             </nav>
             {/* this client's call, where userStream is set */}
-            <video muted autoPlay playsInline ref={userStream}></video>
+            <video hidden muted autoPlay playsInline ref={userStream}></video>
             {peers.map((peer) => {
                 return (
                     <PeerVideo key={peer.peerId} peer={peer.peer} />
@@ -283,11 +286,15 @@ export default function Lobby(props: PropsType) {
                 <NarratorView
                     lobbyId={lobbyId}
                     errorHandler={setErrorMessage}
+                    socketRef={socketRef}
+                    selected={selected}
+                    setSelected={setSelected}
                 />
             ) : (
                 <ListenerView
                     lobbyId={lobbyId}
                     errorHandler={setErrorMessage}
+                    selected={selected}
                 />
             )}
         </div>
@@ -297,12 +304,14 @@ export default function Lobby(props: PropsType) {
 function NarratorView(props: {
     lobbyId: string;
     errorHandler: (message: string) => void;
+    socketRef: React.MutableRefObject<Socket<ServerToClientEvents, ClientToServerEvents> | undefined>;
+    selected: number;
+    setSelected: React.Dispatch<React.SetStateAction<number>>;
 }) {
-    const { lobbyId, errorHandler } = props;
+    const { lobbyId, errorHandler, socketRef, selected, setSelected } = props;
     const [status, setStatus] = useState(0);
     const [listeners, setListeners] = useState([]);
     const [images, setImages] = useState<Array<string>>([]);
-    const [selected, setSelected] = useState(0);
 
     function handleStatusChange(oldStatus: number, newStatus: number) {
         setStatus(newStatus);
@@ -406,7 +415,7 @@ function NarratorView(props: {
                             }
                             onClick={(e) => {
                                 e.preventDefault();
-                                // TODO: Broadcast to listeners
+                                socketRef.current?.emit("changeImg", index);
                                 setSelected(index);
                             }}
                             key={index}
@@ -423,8 +432,9 @@ function NarratorView(props: {
 function ListenerView(props: {
     lobbyId: string;
     errorHandler: (message: string) => void;
+    selected: number;
 }) {
-    const { lobbyId, errorHandler } = props;
+    const { lobbyId, errorHandler, selected } = props;
     const [status, setStatus] = useState(0);
     const [listeners, setListeners] = useState<follower[]>([]);
     const [images, setImages] = useState<Array<string>>([]);
@@ -470,7 +480,7 @@ function ListenerView(props: {
     return (
         <>
             <div>
-                <BackGround3D autoRotate={false} path={images[0]} />
+                <BackGround3D autoRotate={false} path={images[selected]} />
                 {showTools ? (
                     <div className="absolute bottom-0 bg-gray-900 h-1/4 w-full text-white flex flex-row items-center justify-between">
                         <div className="w-[15%] bg-gray-700 overflow-auto pr-6">
