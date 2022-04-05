@@ -221,6 +221,10 @@ export default function Lobby(props: PropsType) {
                             socketRef.current.on("changeImg", (index) => {
                                 setSelected(index);
                             })
+
+                            socketRef.current.on("playSFX", (url) => {
+                                console.log(url)
+                            });
                         }
                     });
                 } else {

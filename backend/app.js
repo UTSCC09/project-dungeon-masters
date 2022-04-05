@@ -608,7 +608,6 @@ app.get("/api/audio/sfx/:id", function (req, res, next) {
                 .status(404)
                 .end("Sound effect with id:" + req.params.id + " does not exist.");
         } else {
-            fs.writeFileSync("sfx", soundEffect.sfx.data)
             res.setHeader("Content-Type", soundEffect.sfx.contentType);
             res.send(soundEffect.sfx.data);
         }
@@ -696,7 +695,7 @@ io.on("connection", (socket) => {
                                 );
                             } else if (campfire.followers.length < 16) {
                                 // if session.username is same as owner, add a field that keeps it's socket
-                                
+
                                 if (campfire.followers.find((follower) => follower.username === socSession.username && follower.socketId === "")){
                                         Campfire.findOneAndUpdate(
                                             { _id: lobbyId, "followers.username": socSession.username },
@@ -788,6 +787,7 @@ io.on("connection", (socket) => {
         console.log("Starting google cloud speech to text")
         speechToText.startRecognitionStream(socket, (transcript) => {
             console.log("Transcript: [", transcript, "]");
+            let soundsCalled = [];
             soundFXCaller.determineSFXCalls(transcript, (entities) => {
                 for (const entity in entities) {
                     console.log("Entity: ", entity, "");
@@ -795,9 +795,12 @@ io.on("connection", (socket) => {
                         if (err || !soundEffect) {
                             return;
                         }
-
                         console.log("Entity: [", entity, "] found sfx: [", soundEffect.url, "]");
-                        socket.emit("playSFX", soundEffect.url);
+                        if (!soundsCalled.includes(entity)) {
+                            soundsCalled.push(entity);
+                            console.log("Entity: [", entity, "] played sfx: [", soundEffect.url, "]");
+                            io.emit("playSFX", soundEffect.url);
+                        }
                     })
                 }
             })
