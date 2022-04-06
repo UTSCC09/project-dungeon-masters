@@ -55,8 +55,8 @@ const soundFXCaller = (function(){
 
         for (let i = 0; i < data.length; i++) {
             let word = data[i];
-            if (word.tag === NOUN && ['NSUBJ', 'POBJ', 'NN'].includes(word.dependencyEdge.label)) {
-                entities[word.word] = {
+            if (word.tag === NOUN || word.tag === VERB) {
+                entities[word.word.toLowerCase()] = {
                     context: [],
                     number: word.number
                 }
