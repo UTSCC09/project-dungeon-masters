@@ -27,7 +27,7 @@ const saltRounds = 10;
 
 const cookie = require("cookie");
 
-const https = require("http");
+const https = require("https");
 const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
@@ -38,7 +38,7 @@ const config = {
     key: privateKey,
     cert: certificate
 };
-const server = https.createServer(app);
+const server = https.createServer(config, app);
 
 const session = require("express-session")({
     secret: process.env.SESSION_SECRET,
@@ -47,7 +47,7 @@ const session = require("express-session")({
     cookie: {
         path: "/",
         httpOnly: true,
-        secure: false,
+        secure: true,
         maxAge: null,
         sameSite: true,
     },
@@ -130,7 +130,7 @@ const signInUser = (req, res, user) => {
         cookie.serialize("username", user.username, {
             path: "/",
             maxAge: null,
-            secure: false,
+            secure: true,
             sameSite: true,
         })
     );
