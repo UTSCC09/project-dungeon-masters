@@ -87,6 +87,27 @@ export class CampfireApi extends BaseGraphqlApi {
         return this.graphQLCall(query, variables);
     };
 
+    static modifyCampfireStatus = async (
+        campfireId: string,
+        status: string,
+        responseFields = ["status"]
+    ) => {
+        let query = `mutation ModifyCampfireDetails($campfireId: String, $campfireData: CampfireInputObject){
+                        modifyCampfireDetails(campfireId: $campfireId, campfireData: $campfireData) {
+                           ${this.generateResponseFields(responseFields)}
+                        }
+                      }`;
+
+        let variables = {
+            campfireId: campfireId,
+            campfireData: {
+                status: status,
+            },
+        };
+
+        return this.graphQLCall(query, variables);
+    };
+
     static addFollowers = async (
         campfireId: string,
         usernames: string[],

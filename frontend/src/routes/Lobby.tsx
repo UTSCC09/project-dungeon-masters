@@ -72,6 +72,7 @@ export default function Lobby(props: PropsType) {
     }
 
     function handleExitLobby() {
+        sfxPlayer.stopAll();
         socketRef.current?.disconnect();
         navigate("/");
     }
@@ -241,6 +242,7 @@ export default function Lobby(props: PropsType) {
 
                             socketRef.current.on("playSFX", (entity) => {
                                 sfxPlayer.isSoundPlaying(entity, (isPlaying: boolean) => {
+                                    console.log(entity, isPlaying)
                                     if (!isPlaying) {
                                         sfxPlayer.playSound(entity)
                                     }
@@ -328,7 +330,7 @@ function NarratorView(props: {
 
     function handleStatusChange(oldStatus: number, newStatus: number) {
         setStatus(newStatus);
-        // TODO: Send status change to server
+        CampfireApi.modifyCampfireStatus(lobbyId, statusIndex[newStatus]);
     }
 
     useEffect(() => {
