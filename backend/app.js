@@ -41,7 +41,7 @@ const session = require("express-session")({
     cookie: {
         path: "/",
         httpOnly: true,
-        secure: true,
+        secure: false,
         maxAge: null,
         sameSite: true,
     },
@@ -124,7 +124,7 @@ const signInUser = (req, res, user) => {
         cookie.serialize("username", user.username, {
             path: "/",
             maxAge: null,
-            secure: true,
+            secure: false,
             sameSite: true,
         })
     );
@@ -396,8 +396,8 @@ const schema = new GraphQLSchema({
 });
 
 var whitelist = [
-    "https://localhost:3000",
-    "https://localhost:4000" /** other domains if any */,
+    "http://localhost:3000",
+    "http://localhost:4000" /** other domains if any */,
     "https://campfirestory.me",
     "https://52.8.249.5:4000",
 ];
@@ -630,6 +630,7 @@ io.use(
 // on is like an event listener, listening an emit event from client
 // emit is pushing an event to trigger on
 io.on("connection", (socket) => {
+    console.log("connection socket");
     function SendAllUserSockets(err, campfire) {
         if(err) {
             console.log(err);
@@ -746,6 +747,7 @@ io.on("connection", (socket) => {
         io.to(payload.userToSignal).emit("userjoined", {
             signal: payload.signal,
             callerID: payload.callerID,
+            username: socSession.username
         });
     });
 
@@ -773,13 +775,13 @@ io.on("connection", (socket) => {
                     return;
                 }
                 if(campfire){
-                    socket.broadcast.emit("userleft", socket.id);
+                    socket.broadcast.emit("userleft", {id: socket.id, username: socSession, message:"a user left"});
                 }else{
                     // if disconnecting owner
                     // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
                     Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
                         speechToText.stopRecognitionStream();
-                        socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
+                        socket.broadcast.emit('ownerleft', {id: socket.id, username: socSession.username, message:"The narrator has left the campfire, you will be redirected to the home page."});
                     });
                 }
             }
@@ -802,6 +804,7 @@ io.on("connection", (socket) => {
             });
             console.log("Starting google cloud speech to text")
             speechToText.startRecognitionStream(socket, (transcript) => {
+                console.log("Transcript: ", transcript);
                 return soundFXCaller.determineSFXCalls(transcript, (entities) => {
                     let soundsCalled = [];
                     for (const entity in entities) {

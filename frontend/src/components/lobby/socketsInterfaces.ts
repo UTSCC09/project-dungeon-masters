@@ -7,7 +7,7 @@ export interface ServerToClientEvents {
     allusers: (users:follower[]) => any;
     userjoined: (payload: ReceivePayload) => any;
     receivingreturnedsignal: (payload: ReceiveReturnPayload) => any;
-    userleft: (id: string) => any;
+    userleft: (id: OwnerLeftPayload) => any;
     ownerleft: (payload: OwnerLeftPayload) => any;
     changeImg: (index: number) => void;
     playSFX: (url:string) => any;
@@ -46,6 +46,7 @@ export interface ReceivePayload {
     signal: Peer.SignalData;
     callerID: string;
     stream: MediaStream;
+    username: string;
 }
 
 export interface peersRefType {
@@ -74,5 +75,6 @@ export interface follower{
 
 export interface OwnerLeftPayload{
   id: string;
+  username: string;
   message:string;
 }

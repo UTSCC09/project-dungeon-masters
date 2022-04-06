@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 
-interface User {
-    username: string;
-}
+// interface User {
+//     username: string;
+// }
 
 interface PropsType {
-    userList: User[];
+    userList: string[];
 }
 
 export default function Listeners(props: PropsType) {
@@ -21,7 +21,7 @@ export default function Listeners(props: PropsType) {
                     return (
                         <Listener
                             key={index}
-                            username={item.username}
+                            username={item}
                             muteHandler={(isNowMuted) => {
                                 if (isNowMuted) {
                                     // Do something
