@@ -200,6 +200,14 @@ export class CampfireApi extends BaseGraphqlApi {
 
         return this.graphQLCall(query, variables);
     };
+
+    static getSFX = async () => {
+        let query = `query GetSFX {
+                        getSoundEffects
+                      }`;
+
+        return this.graphQLCall(query, {});
+    };
 }
 
 export const CampfireFields = {

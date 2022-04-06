@@ -2,17 +2,38 @@ import {Howl, Howler} from 'howler';
 export const sfxPlayer = (function(){
     "use strict";
 
+    let sounds = {};
 
     let module = {};
 
-    module.playSound = function (partialUrl) {
-        let url = process.env.REACT_APP_BACKENDURL + partialUrl;
-        let sound = new Howl({
-            src: [url],
-            html5: true
+    module.loadSound = function (entity, url) {
+        console.log(process.env.REACT_APP_BACKENDURL + url)
+        sounds[entity] = new Howl({
+            src: [process.env.REACT_APP_BACKENDURL + url],
+            preload: true,
+            html5: true,
+            volume: 0.5,
+            mute: true
         });
+        sounds[entity].play();
+        sounds[entity].stop();
+    }
 
-        sound.play();
+    module.playSound = function (entity) {
+        if (Object.keys(sounds).includes(entity)) {
+            sounds[entity].mute(false);
+            sounds[entity].play();
+        } else {
+            console.log("SFX does not exist")
+        }
+    }
+
+    module.isSoundPlaying = function (entity, callBack) {
+        if (Object.keys(sounds).includes(entity)) {
+            callBack(sounds[entity].playing());
+        } else {
+            console.log("SFX does not exist")
+        }
     }
 
     return module;

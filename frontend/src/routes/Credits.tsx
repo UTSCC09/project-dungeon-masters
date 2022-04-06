@@ -98,10 +98,10 @@ export default function Credits() {
             </li>
             <li>
             <a href="https://www.flaticon.com/free-icons/landscape" title="landscape icons">Landscape icons created by Freepik - Flaticon</a>
-            </li>   
+            </li>
             <li>
             <a href="https://www.flaticon.com/free-icons/layer" title="layer icons">Layer icons created by Freepik - Flaticon</a>
-            </li>         
+            </li>
         </ul>
         <div className="text-center underline text-xl">Code snippet from:</div>
         <ul className="text-center">
@@ -120,6 +120,9 @@ export default function Credits() {
             <li>
                 <a href="https://loading.io/css/">Loading animation</a>
             </li>
+            <li>
+                <a href="https://stackoverflow.com/questions/50976084/how-do-i-stream-live-audio-from-the-browser-to-google-cloud-speech-via-socket-io/50976085#50976085">Speech to text over Web sockets</a>
+            </li>
         </ul>
         <div className="text-center underline text-xl">Tutorials from:</div>
         <ul className="text-center">
@@ -133,6 +136,12 @@ export default function Credits() {
             <a href="https://www.youtube.com/watch?v=0fWN_q4zAqs&ab_channel=CodingWithChaim">Handle User Disconnect in WebRTC Group call</a>
             </li>
         </ul>
+            <div className="text-center underline text-xl">Sounds from:</div>
+            <ul className="text-center">
+                <li>
+                    <a href="https://freesound.org">FreeSound</a>
+                </li>
+            </ul>
         </>
     );
 }
