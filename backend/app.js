@@ -804,13 +804,16 @@ io.on("connection", (socket) => {
             });
             console.log("Starting google cloud speech to text")
             speechToText.startRecognitionStream(socket, (transcript) => {
-                console.log("Transcript: ", transcript);
+                console.log(transcript)
                 return soundFXCaller.determineSFXCalls(transcript, (entities) => {
                     let soundsCalled = [];
                     for (const entity in entities) {
+                        console.log(entity)
+                        console.log(entity, " in ", entityList.includes(entity))
                         if (entityList.includes(entity)) {
                             if (!soundsCalled.includes(entity)) {
                                 soundsCalled.push(entity);
+                                console.log("played ", entity)
                                 io.emit("playSFX", entity);
                             }
                         }

@@ -23,6 +23,7 @@ export const sfxPlayer = (function(){
         if (Object.keys(sounds).includes(entity)) {
             sounds[entity].mute(false);
             sounds[entity].play();
+            sounds[entity].fade(0.75, 0, 100);
         } else {
             console.log("SFX does not exist")
         }
@@ -34,6 +35,12 @@ export const sfxPlayer = (function(){
         } else {
             console.log("SFX does not exist")
         }
+    }
+
+    module.stopAll = function () {
+        Object.keys(sounds).forEach(entity => {
+            sounds[entity].stop();
+        });
     }
 
     return module;
