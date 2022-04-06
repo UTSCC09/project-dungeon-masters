@@ -11,6 +11,7 @@ import Peer from "simple-peer";
 import {context} from "@react-three/fiber";
 import {SoundToTextUtility} from "../components/lobby/SoundToTextUtility";
 import {sfxPlayer} from "../components/lobby/sfxPlayer";
+import {json} from "stream/consumers";
 
 const staticListeners = [
     "aquil",
@@ -111,6 +112,21 @@ export default function Lobby(props: PropsType) {
     }
 
     useEffect(() => {
+        CampfireApi.getSFX()
+            .then((res) => {
+                if (res) {
+                    return res.json();
+                } else {
+                    throw new Error("Response is null");
+                }
+            }).then((json) => {
+                if (!json.errors) {
+                    const soundFXData = json.data.getSoundEffects;
+                    soundFXData.forEach((sfxData: {entity: string, url: string }) => {
+                        sfxPlayer.loadSound(sfxData.entity, sfxData.url);
+                    });
+                }
+        });
         CampfireApi.getCampfireRole(lobbyId)
             .then((res) => {
                 if (res) {
@@ -223,8 +239,12 @@ export default function Lobby(props: PropsType) {
                                 setSelected(index);
                             })
 
-                            socketRef.current.on("playSFX", (url) => {
-                                sfxPlayer.playSound(url);
+                            socketRef.current.on("playSFX", (entity) => {
+                                sfxPlayer.isSoundPlaying(entity, (isPlaying: boolean) => {
+                                    if (!isPlaying) {
+                                        sfxPlayer.playSound(entity)
+                                    }
+                                });
                             });
                         }
                     });

@@ -25,7 +25,7 @@ const speechToText = (function(){
                 profanityFilter: false,
                 enableWordTimeOffsets: true
             },
-            interimResults: false,
+            interimResults: true,
             singleUtterance: true
         })
             .on('error', (err) => {

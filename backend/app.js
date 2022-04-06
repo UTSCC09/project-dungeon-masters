@@ -27,7 +27,7 @@ const saltRounds = 10;
 
 const cookie = require("cookie");
 
-const https = require("https");
+const https = require("http");
 const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
@@ -38,7 +38,7 @@ const config = {
     key: privateKey,
     cert: certificate
 };
-const server = https.createServer(config, app);
+const server = https.createServer(app);
 
 const session = require("express-session")({
     secret: process.env.SESSION_SECRET,
@@ -47,7 +47,7 @@ const session = require("express-session")({
     cookie: {
         path: "/",
         httpOnly: true,
-        secure: true,
+        secure: false,
         maxAge: null,
         sameSite: true,
     },
@@ -157,6 +157,7 @@ const signOutUser = (req, res) => {
 
 const {soundFXCaller} = require("./CampFireSound/SoundFXCaller");
 const {speechToText} = require("./CampFireSound/googleSpeechToTextApi");
+const {GraphQLJSONObject} = require("graphql-type-json");
 
 const RootQueryType = new GraphQLObjectType({
     name: "Query",
@@ -231,6 +232,14 @@ const RootQueryType = new GraphQLObjectType({
                 )
                     return "follower";
                 return "none";
+            },
+        },
+        getSoundEffects: {
+            type: new GraphQLList(GraphQLJSONObject),
+            args: {},
+            resolve: async (source, args, context) => {
+                let results = await SoundEffect.find({}, {entity: 1, url: 1}).exec();
+                return results;
             },
         },
     }),
@@ -790,23 +799,28 @@ io.on("connection", (socket) => {
     })
 
     socket.on('startGoogleCloudStream', () => {
-        console.log("Starting google cloud speech to text")
-        speechToText.startRecognitionStream(socket, (transcript) => {
-            return soundFXCaller.determineSFXCalls(transcript, (entities) => {
-                let soundsCalled = [];
-                for (const entity in entities) {
-                    SoundEffect.findOne({entity: entity}, {}, {}, (err, soundEffect) => {
-                        if (err || !soundEffect) {
-                            return;
+        SoundEffect.find({}, {entity: 1}, (err, docs) => {
+            if (err) {
+                console.log(err)
+                return;
+            }
+            let entityList = [];
+            docs.forEach(data => {
+                entityList.push(data.entity);
+            });
+            console.log("Starting google cloud speech to text")
+            speechToText.startRecognitionStream(socket, (transcript) => {
+                return soundFXCaller.determineSFXCalls(transcript, (entities) => {
+                    let soundsCalled = [];
+                    for (const entity in entities) {
+                        if (entityList.includes(entity)) {
+                            if (!soundsCalled.includes(entity)) {
+                                soundsCalled.push(entity);
+                                io.emit("playSFX", entity);
+                            }
                         }
-                        console.log("Before playing: ", soundsCalled, "[", transcript, "]");
-                        if (!soundsCalled.includes(entity)) {
-                            soundsCalled.push(entity);
-                            console.log("Entity: [", entity, "] played sfx: [", soundEffect.url, "]");
-                            io.emit("playSFX", soundEffect.url);
-                        }
-                    })
-                }
+                    }
+                });
             });
         });
     });
@@ -822,5 +836,5 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, function (err) {
     if (err) console.log(err);
-    else console.log("HTTPs server on https://localhost:%s", PORT);
+    else console.log("HTTPs server on http://localhost:%s", PORT);
 });
