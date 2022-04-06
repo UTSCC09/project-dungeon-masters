@@ -32,8 +32,8 @@ const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
 const PORT = 4000;
-const privateKey = fs.readFileSync( 'server.key' );
-const certificate = fs.readFileSync( 'server.crt' );
+const privateKey = fs.readFileSync( '52_8_249_5.key' );
+const certificate = fs.readFileSync( '52_8_249_5.pem' );
 const config = {
     key: privateKey,
     cert: certificate
@@ -393,12 +393,10 @@ const schema = new GraphQLSchema({
 });
 
 var whitelist = [
-    "http://localhost:3000",
-    "http://localhost:4000" /** other domains if any */,
-    "http://c09-siniat.utsc-labs.utoronto.ca:4000",
-    "http://c09-siniat.utsc-labs.utoronto.ca",
-    "http://54.219.191.140",
-    "http://54.219.191.140:4000",
+    "https://localhost:3000",
+    "https://localhost:4000" /** other domains if any */,
+    "https://campfirestory.me",
+    "https://52.8.249.5:4000",
 ];
 
 var corsOptions = {
