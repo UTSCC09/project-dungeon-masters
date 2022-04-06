@@ -27,19 +27,13 @@ const saltRounds = 10;
 
 const cookie = require("cookie");
 
-const https = require("https");
+const http = require("http");
 const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
 const PORT = 4000;
-const privateKey = fs.readFileSync( '52_8_249_5.key' );
-const certificate = fs.readFileSync( '52_8_249_5.pem' );
-const config = {
-    key: privateKey,
-    cert: certificate
-};
-const server = https.createServer(config, app);
 
+const server = http.createServer(app);
 const session = require("express-session")({
     secret: process.env.SESSION_SECRET,
     resave: false,
