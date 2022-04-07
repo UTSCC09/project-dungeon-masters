@@ -65,7 +65,7 @@ const io = new Server(server, {
             return callback(null, true);
         },
         allowedHeaders: ["cfstorylobby"],
-    },
+    }
 });
 
 const sharedsession = require("express-socket.io-session");

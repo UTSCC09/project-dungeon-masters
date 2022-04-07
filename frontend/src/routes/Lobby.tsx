@@ -151,12 +151,13 @@ export default function Lobby(props: PropsType) {
                     const role = json.data.getCampfireRole;
                     setIsNarrator(role === "owner");
                     // create websocket between server and client when joining the room
-                    socketRef.current = io(process.env.REACT_APP_BACKENDURL? process.env.REACT_APP_BACKENDURL + "/": "/" ,
+                    socketRef.current = io(process.env.REACT_APP_SOCKETURL? process.env.REACT_APP_SOCKETURL : "/" ,
                         {withCredentials: true,
                         extraHeaders:{
                            "cfstorylobby": lobbyId
                         }
                     });
+                    console.log("socket",socketRef.current);
                     socketRef.current.connect();
                     let soundTextUtility = new SoundToTextUtility();
                     if (role === "owner") {
