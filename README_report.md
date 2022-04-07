@@ -53,6 +53,7 @@ Artina Sin:
 - Setup image uploads
 - Setup webRTC and websockets to allow voice call in a campfire lobby
 - Setup and resolving issues related to deployment
+
 Wilson Mak: 
 - Setup backend using Graphql and Mongoose
 - Add API calls for backend
