@@ -8,7 +8,7 @@
 
 ## Project Video URL 
 
-[https://youtu.be/nY1_1eiRgig](video demo) 
+[video demo](https://youtu.be/nY1_1eiRgig) 
 
 ## Project Description
 
