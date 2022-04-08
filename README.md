@@ -72,6 +72,10 @@ Wilson Mak:
 - Used websockets to broadcast sfx to all listeners
 
 Yiyang Zhou: 
+- Used 3d engine to create the UI for main page, login / register page, and the lobby UI for both narrators' view and listeners' view.
+- Created profile page.
+- Set up and configured the backend server on AWS.
+- Set up the project backlog on Jira.
 
 # One more thing
 
