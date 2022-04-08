@@ -27,19 +27,13 @@ const saltRounds = 10;
 
 const cookie = require("cookie");
 
-const https = require("http");
+const http = require("http");
 const { resolve, join } = require("path");
 const { hash } = require("bcrypt");
 const { aggregate } = require("./models/userModel");
 const PORT = 4000;
-const privateKey = fs.readFileSync( '52_8_249_5.key' );
-const certificate = fs.readFileSync( '52_8_249_5.pem' );
-const config = {
-    key: privateKey,
-    cert: certificate
-};
-const server = https.createServer(app);
 
+const server = http.createServer(app);
 const session = require("express-session")({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -71,7 +65,7 @@ const io = new Server(server, {
             return callback(null, true);
         },
         allowedHeaders: ["cfstorylobby"],
-    },
+    }
 });
 
 const sharedsession = require("express-socket.io-session");
@@ -402,8 +396,8 @@ const schema = new GraphQLSchema({
 });
 
 var whitelist = [
-    "https://localhost:3000",
-    "https://localhost:4000" /** other domains if any */,
+    "http://localhost:3000",
+    "http://localhost:4000" /** other domains if any */,
     "https://campfirestory.me",
     "https://52.8.249.5:4000",
 ];
@@ -636,6 +630,7 @@ io.use(
 // on is like an event listener, listening an emit event from client
 // emit is pushing an event to trigger on
 io.on("connection", (socket) => {
+    console.log("connection socket");
     function SendAllUserSockets(err, campfire) {
         if(err) {
             console.log(err);
@@ -752,6 +747,7 @@ io.on("connection", (socket) => {
         io.to(payload.userToSignal).emit("userjoined", {
             signal: payload.signal,
             callerID: payload.callerID,
+            username: socSession.username
         });
     });
 
@@ -779,13 +775,13 @@ io.on("connection", (socket) => {
                     return;
                 }
                 if(campfire){
-                    socket.broadcast.emit("userleft", socket.id);
+                    socket.broadcast.emit("userleft", {id: socket.id, username: socSession, message:"a user left"});
                 }else{
                     // if disconnecting owner
                     // if user that is leaving is owner, send a different signal so frontend shows a message to force others to leave
                     Campfire.findOneAndUpdate({ ownerSocketId: socket.id }, { ownerSocketId:"" }, function(err, campfire){
                         speechToText.stopRecognitionStream();
-                        socket.broadcast.emit('ownerleft', {id: socket.id,message:"The narrator has left the campfire, you will be redirected to the home page."});
+                        socket.broadcast.emit('ownerleft', {id: socket.id, username: socSession.username, message:"The narrator has left the campfire, you will be redirected to the home page."});
                     });
                 }
             }

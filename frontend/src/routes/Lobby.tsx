@@ -12,6 +12,8 @@ import {context} from "@react-three/fiber";
 import {SoundToTextUtility} from "../components/lobby/SoundToTextUtility";
 import {sfxPlayer} from "../components/lobby/sfxPlayer";
 import {json} from "stream/consumers";
+import { useCookies } from "react-cookie";
+import { StringDecoder } from "string_decoder";
 
 const staticListeners = [
     "aquil",
@@ -59,6 +61,9 @@ export default function Lobby(props: PropsType) {
     const [errorMessage, setErrorMessage] = useState("");
     const [isNarrator, setIsNarrator] = useState(false);
     const [selected, setSelected] = useState(0);
+    const [cookies, setCookie, removeCookie] = useCookies(["username"]);
+    const isLoggedin = cookies.username && cookies.username !== "";
+    const [listeners, setListeners] = useState<string[]>([]);
 
     //for webRTC
     const userStream = useRef<HTMLVideoElement>(null);
@@ -113,6 +118,10 @@ export default function Lobby(props: PropsType) {
     }
 
     useEffect(() => {
+        if (!isLoggedin) {
+            navigate("/login");
+            return;
+        }
         CampfireApi.getSFX()
             .then((res) => {
                 if (res) {
@@ -142,12 +151,13 @@ export default function Lobby(props: PropsType) {
                     const role = json.data.getCampfireRole;
                     setIsNarrator(role === "owner");
                     // create websocket between server and client when joining the room
-                    socketRef.current = io(process.env.REACT_APP_BACKENDURL? process.env.REACT_APP_BACKENDURL: "/" ,
+                    socketRef.current = io(process.env.REACT_APP_SOCKETURL? process.env.REACT_APP_SOCKETURL : "/" ,
                         {withCredentials: true,
                         extraHeaders:{
                            "cfstorylobby": lobbyId
                         }
                     });
+                    console.log("socket",socketRef.current);
                     socketRef.current.connect();
                     let soundTextUtility = new SoundToTextUtility();
                     if (role === "owner") {
@@ -165,6 +175,7 @@ export default function Lobby(props: PropsType) {
                             socketRef.current.emit("joinroom", lobbyId);
                             socketRef.current.on("allusers", users => {
                                 let temppeers:peersRefType[] = [];
+                                let listeningPeers:string[] = [];
                                 users.forEach(user => {
                                     //userid is the socket id for that client
                                     if(user.socketId){
@@ -177,9 +188,11 @@ export default function Lobby(props: PropsType) {
                                             peerId: user.socketId,
                                             peer,
                                         });
+                                        listeningPeers.push(user.username);
                                     }
                                 });
                                 setPeers(temppeers);
+                                setListeners(listeningPeers);
                             });
 
                             // whenever a listener joins
@@ -196,6 +209,7 @@ export default function Lobby(props: PropsType) {
                                     }else{
                                        return [{peerId: payload.callerID, peer}];
                                     }});
+                                setListeners([...listeners, payload.username]);
                             });
 
                             socketRef.current.on("receivingreturnedsignal", payload => {
@@ -204,16 +218,16 @@ export default function Lobby(props: PropsType) {
                                 item?.peer.signal(payload.signal);
                             });
 
-                            socketRef.current.on("userleft", id => {
-                                const peerObj = peersRef.current.find(p => p.peerId === id);
+                            socketRef.current.on("userleft", payload => {
+                                const peerObj = peersRef.current.find(p => p.peerId === payload.id);
                                 if(peerObj) {
                                     // destroy the peer session
                                     peerObj.peer.destroy();
                                 }
                                 // remove the destroyed peer
-                                const peers = peersRef.current.filter(p => p.peerId !== id);
+                                const peers = peersRef.current.filter(p => p.peerId !== payload.id);
                                 peersRef.current = peers;
-
+                                console.log(payload.message);
                                 setPeers(peers);
                             });
 
@@ -231,8 +245,10 @@ export default function Lobby(props: PropsType) {
                                 }
                                 // remove the destroyed peer
                                 const peers = peersRef.current.filter(p => p.peerId !== payload.id);
+                                const listeningPeers = listeners.filter(p => p !== payload.username);
                                 peersRef.current = peers;
                                 setPeers(peers);
+                                setListeners(listeningPeers);
                                 setErrorMessage(payload.message);
                             });
 
@@ -304,12 +320,14 @@ export default function Lobby(props: PropsType) {
                     socketRef={socketRef}
                     selected={selected}
                     setSelected={setSelected}
+                    listeners={listeners}
                 />
             ) : (
                 <ListenerView
                     lobbyId={lobbyId}
                     errorHandler={setErrorMessage}
                     selected={selected}
+                    listeners={listeners}
                 />
             )}
         </div>
@@ -322,10 +340,10 @@ function NarratorView(props: {
     socketRef: React.MutableRefObject<Socket<ServerToClientEvents, ClientToServerEvents> | undefined>;
     selected: number;
     setSelected: React.Dispatch<React.SetStateAction<number>>;
+    listeners: string[];
 }) {
-    const { lobbyId, errorHandler, socketRef, selected, setSelected } = props;
+    const { lobbyId, errorHandler, socketRef, selected, setSelected, listeners } = props;
     const [status, setStatus] = useState(0);
-    const [listeners, setListeners] = useState([]);
     const [images, setImages] = useState<Array<string>>([]);
 
     function handleStatusChange(oldStatus: number, newStatus: number) {
@@ -350,7 +368,7 @@ function NarratorView(props: {
                             .map((item) => item.toLowerCase())
                             .indexOf(json.data.campfires[0].status)
                     );
-                    setListeners(json.data.campfires[0].followers);
+                    // setListeners(json.data.campfires[0].followers);
                     setImages((images) => {
                         let imgs:Array<string> = [];
                         json.data.campfires[0].scenes.map((item:string)=>{
@@ -448,10 +466,11 @@ function ListenerView(props: {
     lobbyId: string;
     errorHandler: (message: string) => void;
     selected: number;
+    listeners: string[];
 }) {
-    const { lobbyId, errorHandler, selected } = props;
+    const { lobbyId, errorHandler, selected, listeners } = props;
     const [status, setStatus] = useState(0);
-    const [listeners, setListeners] = useState<follower[]>([]);
+    // const [listeners, setListeners] = useState<follower[]>([]);
     const [images, setImages] = useState<Array<string>>([]);
     const [muted, setMuted] = useState(false);
     const [speakerMuted, setSpeakerMuted] = useState(false);
@@ -474,8 +493,8 @@ function ListenerView(props: {
                             .map((item) => item.toLowerCase())
                             .indexOf(json.data.campfires[0].status)
                     );
-                    setListeners(json.data.campfires[0].followers);
-                    console.log(json.data.campfires[0].scenes);
+                    // setListeners(json.data.campfires[0].followers);
+                    console.log("scenes",json.data.campfires[0].scenes);
                     setImages((images) => {
                         let imgs:Array<string> = [];
                         json.data.campfires[0].scenes.map((item:string)=>{
@@ -501,8 +520,8 @@ function ListenerView(props: {
                         <div className="w-[15%] bg-gray-700 overflow-auto pr-6">
                             {listeners.map((item, index) => {
                                 return (
-                                    <div key={item.username} className="grid grid-cols-2 text-center">
-                                        {item.username}
+                                    <div key={item} className="grid grid-cols-2 text-center">
+                                        {item}
                                         <Slider
                                             size="small"
                                             defaultValue={70}
@@ -518,7 +537,7 @@ function ListenerView(props: {
                         </div>
                         <div className="w-[20%] pr-6">
                             <div className="grid grid-cols-2 grid-rows-2 text-center">
-                                Narrator
+                                {/* Narrator
                                 <Slider
                                     size="small"
                                     defaultValue={70}
@@ -527,7 +546,7 @@ function ListenerView(props: {
                                     onChange={(e, value) => {
                                         // Handler volume change
                                     }}
-                                />
+                                /> */}
                                 Sound Effects
                                 <Slider
                                     size="small"

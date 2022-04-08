@@ -267,10 +267,10 @@ export function AddCampFireForm() {
                             <label className='p-4 w-full text-black dark:text-white shrink-0'>
                             Link
                             <input type="text" className="m-4 text-black bg-gray-200 w-4/6 rounded-md dark:text-white dark:bg-gray-600 p-1 focus-visible:outline-none"
-                                value={process.env.REACT_APP_BACKENDURL + "/lobby/" + lobby.id}
+                                value={process.env.REACT_APP_FRONTENDURL + "/lobby/" + lobby.id}
                                 readOnly
                             />
-                            <CopyToClipboard text={process.env.REACT_APP_BACKENDURL + "/lobby/" + lobby.id}>
+                            <CopyToClipboard text={process.env.REACT_APP_FRONTENDURL + "/lobby/" + lobby.id}>
                             <button className="h-8 w-15 p-3 text-white btn btn_copy bg-grey-800 rounded-md"
                                     onClick={(e) => {
                                     e.preventDefault();
